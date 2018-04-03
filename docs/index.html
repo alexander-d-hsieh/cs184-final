@@ -27,7 +27,7 @@
 <h1 align="middle">Final Project: Shattering Brittle Objects</h1>
 <h3 align="middle">Nicole Kinser (25271578), Alexander Hsieh (25452963), Derek Kennedy (25276436)</h2>
 <p>
-  This will simulate a brittle object shattering against the ground. 
+  This project will simulate a brittle object shattering against the ground. 
   We will attempt to realistically simulate objects, such as glass and ceramic, 
   falling to the ground and the ways in which they break. 
 </p>
@@ -36,38 +36,52 @@
 
 <h2 align="left">Problem Description</h2>
 <p>
-  This problem is important because it is hard for animators do draw frame by frame shattering, 
-  and it is a common action bothy animation and video games that it should be easily replicated and produced, 
+  This problem is important because it is hard for animators to draw an object shattering frame by frame, 
+  and this action is a common occurence in both animation and video games, so there should be a way for it to be easily produced, 
   regardless of initial conditions. Additionally, the shattering effect of a brittle object 
   varies widely depending on the initial conditions of the object as well as the magnitude of the 
-  force applied onto the object, so a shattering procedure shouldbe able to produce realistic results 
-  regardless of theses parameters. 
+  force applied onto the object, so a shattering procedure should be able to produce realistic results 
+  regardless of the parameters. 
+</p>
+<p>
+  This problem is challenging because it involves animating of the object 
+  dropping or being struck by an object, determining the physics of how an object shatters and how
+  cracks form and propogate along the object, and remeshing of the new fragments after the object has been split.
+</p>
+<p>
+  We will solve this problem by implementing one or more of the methods described in the papers mentioned in the <a href="#ref">Resources</a> below.
 </p>
 
 <h2 align="left">Goals and Deliverables</h2>
-<h4 align="left">What we plan to deliver</h2>
+<h3 align="left">What we plan to deliver</h3>
 <ul>
   <li>
-    A generic brittle object shattering as it is dropped from various different heights, demonstrating our implementation
-    of the fracturing algorithm and its responsiveness to different initial conditions and forces. 
+    <b>What we want to accomplish:</b> A generic brittle object shattering as it is dropped from various different heights, demonstrating our implementation of the fracturing algorithm and its responsiveness to different initial conditions and forces. 
   </li>
   <li>
-    
+    <b>Desired renderings/demo:</b> We want to produce an animated rendering of an object hitting the ground and shattering.
+    <br>
+    A related photo example:<br>
+    <img src="images/shattered_object.jpg" align="middle" width="400px"/>
+  </li>
+  <li>
+    <b>How we will measure success:</b> It is tough to specify metrics for the quality of the rendering, but successful renderings should look similar to how 
+    that object would shatter in the real world, so we will measure success based on whether we think the renderings look realistic.
   </li>
 </ul>
 
-<h4 align="left">What we hope to deliver</h2>
-  <ul>
-    <li>
-      A simple interactive game or scene that have brittle objects and interactions that will apply a force
-      to brittle, causing it to shatter
-    </li>
-    <li>
-      Multiple different brittle material types and rendering demonstrating how the same object made with different
-      materials will shatter
-    </li>
-    
-  </ul>
+<h3 align="left">What we hope to deliver</h3>
+<ul>
+  <li>
+    <b>What we want to accomplish:</b> Multiple different brittle material types and rendering demonstrating how the same object made with different materials will shatter.
+  </li>
+  <li>
+    <b>Desired renderings/demo:</b> We want to produce animated renderings of an objects of different materials shattering upon impact with the ground or after being hit by a force. We would like to create an interactive scene that has brittle objects and the user can select the object material and what force to apply to the object, causing it to shatter.
+  </li>
+  <li>
+    <b>How we will measure success:</b> As above, we will measure success based on whether we think the renderings look realistic. If examples exist for how the object will shatter as that material, we will also compare our results to these.
+  </li>
+</ul>
 
 <h2 align="left">Schedule</h2>
 
@@ -84,13 +98,15 @@
   Week 2:
   <ul>
     <li>
-      Work on the algorithm described in the papers below and implement one or more different ways of creating shattering affects,
+      Work on the algorithm described in the papers below and implement one or more different ways of creating shattering effects,
       ideally having at least one method that is both realistic and fast enough to be rendered in real time
     </li>
     <li>
       Complete the first rendered scene of the utah pot shattering from various different heights
     </li>
-    <li>Document progress and create midstone video</li>
+    <li>
+      Document progress and create milestone video
+    </li>
   </ul>
 </p>
 
@@ -100,6 +116,14 @@
     <li>
       Create some interactive features in the webGL real time rendering for demo purposes
     </li>
+    <ul>
+      <li>
+        Create ability to use different materials for the objects
+      </li>
+      <li>
+        Extend shattering effect beyond just the object dropping. Add ability for shattering when force is applied onto the object
+      </li>
+    </ul>
   </ul>
 </p>
 
@@ -112,18 +136,19 @@
   </ul>
 </p>
 
-<h2 align="left">Resources</h2>
+<h2 align="left" id="ref">Resources</h2>
 
 <p>
   Papers:<br>
   <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable Simulation of the Shattering of Brittle Objects</a>
   <br>
   <a href="https://www.ri.cmu.edu/pub_files/pub4/o_brien_james_f_1999_1/o_brien_james_f_1999_1.pdf">Graphical Modeling and Animation of Brittle Fracture</a>
-  <br>
-  <a href="https://www.gmrv.es/Publications/2014/SO14/I3D2014.pdf">Fracture Animation Based on High-Dimensional Voronoi Diagrams</a>
+  <a href="http://graphics.cs.yale.edu/site/sites/files/Fracture.pdf">Real-Time Simulation of Deformation and Fracture of Stiff Materials</a>
 </p>
 <p>
-  Platform: GLSL shaders using webGL
+  Software Platform: GLSL shaders using webGL. We will most likely be using the webGL code from project 3-2 part 5 as a starting point.
+  <br>
+  Computing/Hardware Platform: Macbook Pro
 </p>
 
 </div>
