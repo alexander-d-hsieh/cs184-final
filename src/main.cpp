@@ -145,275 +145,147 @@ void incompleteObjectError(const char *object, const char *attribute) {
   exit(-1);
 }
 
-void loadObjectsFromFile(string json, BrittleObject *brittleObject, BrittleObjectParameters *op, vector<CollisionObject *>* coll_objects) {
+void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleObjectParameters *op, vector<CollisionObject *>* coll_objects) {
   // Read JSON from file
-  ifstream node(node_file);
-  ifstream face(face_file);
-  ifstream ele(ele_file);
+  ifstream i(filename);
+  json j;
+  i >> j;
 
-  // Initialize dummy variables used for parsing
-  int d1, d2, d3;
-
-  vector<Vertex *> vertices = vector<Vertex *>();
-
-  int num_vertex;
-  node >> num_vertex >> d1 >> d2 >> d3;
-  double x, y, z;
-  int vertex_index;
-  while (node >> vertex_index >> x >> y >> z) {
-    Vertex* v = new Vertex(x, y, z, vertex_index);
-    //TODO make vertices list
-    vertices.push_back(v);
-  }
-
-  unordered_map<vector<int>, Triangle *> triangle_map = unordered_map<vector<int>, Triangle *>();
-
-  int num_face;
-  face >> num_face >> d1;
-  int face_index, v1, v2, v3, v4;
-  //TODO add unordered set of triangles
-  while (face >> face_index >> v1 >> v2 >> v3 >> d1) {
-    std::vector<int> vec;
-    vec.push_back(v1);
-    vec.push_back(v2);
-    vec.push_back(v3);
-    std::sort( vec.begin(), vec.end() );
-    v1 = vec[0];
-    v2 = vec[1];
-    v3 = vec[2];
-    Triangle *t = new Triangle(vertices[v1], vertices[v2], vertices[v3], true);
-    triangle_map[vec] = t;
-  }
-
-  int num_tetra;
-  ele >> num_tetra >> d1 >> d2;
-  int ele_index;
-  while (ele >> ele_index >> v1 >> v2 >> v3 >> v4) {
-    std::vector<int> vec;
-    Triangle *t1;
-    Triangle *t2;
-    Triangle *t3;
-    Triangle *t4;
-
-    vec.push_back(v1);
-    vec.push_back(v2);
-    vec.push_back(v3);
-    std::sort( vec.begin(), vec.end() );
-    if (triangle_map.find(vec) != triangle_map.end()) {
-      t1 = new Triangle(vertices[v1], vertices[v2], vertices[v3], false);
-      triangle_map[vec] = t1;
-    } else {
-      t1 = triangle_map[vec];
-    }
-    vec.clear();
-
-    vec.push_back(v1);
-    vec.push_back(v2);
-    vec.push_back(v4);
-    std::sort( vec.begin(), vec.end() );
-    if (triangle_map.find(vec) != triangle_map.end()) {
-      t2 = new Triangle(vertices[v1], vertices[v2], vertices[v4], false);
-      triangle_map[vec] = t2;
-    } else {
-      t2 = triangle_map[vec];
-    }
-    vec.clear();
-
-    vec.push_back(v1);
-    vec.push_back(v3);
-    vec.push_back(v4);
-    std::sort( vec.begin(), vec.end() );
-    if (triangle_map.find(vec) != triangle_map.end()) {
-      t3 = new Triangle(vertices[v1], vertices[v3], vertices[v4], false);
-      triangle_map[vec] = t3;
-    } else {
-      t3 = triangle_map[vec];
-    }
-    vec.clear();
-
-    vec.push_back(v2);
-    vec.push_back(v3);
-    vec.push_back(v4);
-    std::sort( vec.begin(), vec.end() );
-    if (triangle_map.find(vec) != triangle_map.end()) {
-      t4 = new Triangle(vertices[v2], vertices[v3], vertices[v4], false);
-      triangle_map[vec] = t4;
-    } else {
-      t4 = triangle_map[vec];
-    }
-    vec.clear();
-
-    Tetrahedron* tet = new Tetrahedron(t1, t2, t3, t4);
-
-  }
-
-  
-
-
-
-  // Loop over objects in scene
   for (json::iterator it = j.begin(); it != j.end(); ++it) {
     string key = it.key();
 
-    // Check that object is valid
     unordered_set<string>::const_iterator query = VALID_KEYS.find(key);
     if (query == VALID_KEYS.end()) {
       cout << "Invalid scene object found: " << key << endl;
       exit(-1);
     }
-
-    // Retrieve object
     json object = it.value();
 
-    // Parse object depending on type (object, sphere, or plane)
     if (key == OBJECT) {
-      // Object
-      // double width, height;
-      // int num_width_points, num_height_points;
-      // float thickness;
-      // e_orientation orientation;
-      // vector<vector<int>> pinned;
+      string node_file, face_file, ele_file;
+      //TODO figure out what other parameters we want to add to the object data
+      // i.e. density, friction, constraint strength
 
-      // auto it_width = object.find("width");
-      // if (it_width != object.end()) {
-      //   width = *it_width;
-      // } else {
-      //   incompleteObjectError("cloth", "width");
-      // }
-
-      // auto it_height = object.find("height");
-      // if (it_height != object.end()) {
-      //   height = *it_height;
-      // } else {
-      //   incompleteObjectError("cloth", "height");
-      // }
-
-      // auto it_num_width_points = object.find("num_width_points");
-      // if (it_num_width_points != object.end()) {
-      //   num_width_points = *it_num_width_points;
-      // } else {
-      //   incompleteObjectError("cloth", "num_width_points");
-      // }
-
-      // auto it_num_height_points = object.find("num_height_points");
-      // if (it_num_height_points != object.end()) {
-      //   num_height_points = *it_num_height_points;
-      // } else {
-      //   incompleteObjectError("cloth", "num_height_points");
-      // }
-
-      // auto it_thickness = object.find("thickness");
-      // if (it_thickness != object.end()) {
-      //   thickness = *it_thickness;
-      // } else {
-      //   incompleteObjectError("cloth", "thickness");
-      // }
-
-      // auto it_orientation = object.find("orientation");
-      // if (it_orientation != object.end()) {
-      //   orientation = *it_orientation;
-      // } else {
-      //   incompleteObjectError("cloth", "orientation");
-      // }
-
-      // auto it_pinned = object.find("pinned");
-      // if (it_pinned != object.end()) {
-      //   vector<json> points = *it_pinned;
-      //   for (auto pt : points) {
-      //     vector<int> point = pt;
-      //     pinned.push_back(point);
-      //   }
-      // }
-
-      // cloth->width = width;
-      // cloth->height = height;
-      // cloth->num_width_points = num_width_points;
-      // cloth->num_height_points = num_height_points;
-      // cloth->thickness = thickness;
-      // cloth->orientation = orientation;
-      // cloth->pinned = pinned;
-
-      // // Cloth parameters
-      // bool enable_structural_constraints, enable_shearing_constraints, enable_bending_constraints;
-      // double damping, density, ks;
-
-      // auto it_enable_structural = object.find("enable_structural");
-      // if (it_enable_structural != object.end()) {
-      //   enable_structural_constraints = *it_enable_structural;
-      // } else {
-      //   incompleteObjectError("cloth", "enable_structural");
-      // }
-
-      // auto it_enable_shearing = object.find("enable_shearing");
-      // if (it_enable_shearing != object.end()) {
-      //   enable_shearing_constraints = *it_enable_shearing;
-      // } else {
-      //   incompleteObjectError("cloth", "it_enable_shearing");
-      // }
-
-      // auto it_enable_bending = object.find("enable_bending");
-      // if (it_enable_bending != object.end()) {
-      //   enable_bending_constraints = *it_enable_bending;
-      // } else {
-      //   incompleteObjectError("cloth", "it_enable_bending");
-      // }
-
-      // auto it_damping = object.find("damping");
-      // if (it_damping != object.end()) {
-      //   damping = *it_damping;
-      // } else {
-      //   incompleteObjectError("cloth", "damping");
-      // }
-
-      // auto it_density = object.find("density");
-      // if (it_density != object.end()) {
-      //   density = *it_density;
-      // } else {
-      //   incompleteObjectError("cloth", "density");
-      // }
-
-      // auto it_ks = object.find("ks");
-      // if (it_ks != object.end()) {
-      //   ks = *it_ks;
-      // } else {
-      //   incompleteObjectError("cloth", "ks");
-      // }
-
-      // cp->enable_structural_constraints = enable_structural_constraints;
-      // cp->enable_shearing_constraints = enable_shearing_constraints;
-      // cp->enable_bending_constraints = enable_bending_constraints;
-      // cp->density = density;
-      // cp->damping = damping;
-      // cp->ks = ks;
-    } else if (key == SPHERE) {
-      Vector3D origin;
-      double radius, friction;
-
-      auto it_origin = object.find("origin");
-      if (it_origin != object.end()) {
-        vector<double> vec_origin = *it_origin;
-        origin = Vector3D(vec_origin[0], vec_origin[1], vec_origin[2]);
+      auto it_node_file = object.find("node");
+      if (it_node_file != object.end()) {
+        node_file = *it_node_file;
       } else {
-        incompleteObjectError("sphere", "origin");
+        incompleteObjectError("object", "node");
       }
 
-      auto it_radius = object.find("radius");
-      if (it_radius != object.end()) {
-        radius = *it_radius;
+      auto it_face_file = object.find("face");
+      if (it_face_file != object.end()) {
+        face_file = *it_face_file;
       } else {
-        incompleteObjectError("sphere", "radius");
+        incompleteObjectError("object", "face");
       }
 
-      auto it_friction = object.find("friction");
-      if (it_friction != object.end()) {
-        friction = *it_friction;
+      auto it_ele_file = object.find("ele");
+      if (it_ele_file != object.end()) {
+        ele_file = *it_ele_file;
       } else {
-        incompleteObjectError("sphere", "friction");
+        incompleteObjectError("object", "ele");
+      }
+      ifstream node(node_file);
+      ifstream face(face_file);
+      ifstream ele(ele_file);
+
+
+      // Initialize dummy variables used for parsing
+      int d1, d2, d3;
+
+      vector<Vertex *> vertices = vector<Vertex *>();
+
+      int num_vertex;
+      node >> num_vertex >> d1 >> d2 >> d3;
+      double x, y, z;
+      int vertex_index;
+      while (node >> vertex_index >> x >> y >> z) {
+        Vertex* v = new Vertex(x, y, z, vertex_index);
+        //TODO make vertices list
+        vertices.push_back(v);
       }
 
-      Sphere *s = new Sphere(origin, radius, friction);
-      objects->push_back(s);
-    } else { // PLANE
+      // unordered_map<vector<int>, Triangle *> triangle_map = unordered_map<vector<int>, Triangle *>();
+
+      // int num_face;
+      // face >> num_face >> d1;
+      int face_index, v1, v2, v3, v4;
+      // //TODO add unordered set of triangles
+      // while (face >> face_index >> v1 >> v2 >> v3 >> d1) {
+      //   std::vector<int> vec;
+      //   vec.push_back(v1);
+      //   vec.push_back(v2);
+      //   vec.push_back(v3);
+      //   std::sort( vec.begin(), vec.end() );
+      //   v1 = vec[0];
+      //   v2 = vec[1];
+      //   v3 = vec[2];
+      //   Triangle *t = new Triangle(vertices[v1], vertices[v2], vertices[v3], true);
+      //   triangle_map[vec] = t;
+      // }
+
+      int num_tetra;
+      ele >> num_tetra >> d1 >> d2;
+      int ele_index;
+      while (ele >> ele_index >> v1 >> v2 >> v3 >> v4) {
+        std::vector<int> vec;
+        Triangle *t1;
+        Triangle *t2;
+        Triangle *t3;
+        Triangle *t4;
+
+        vec.push_back(v1);
+        vec.push_back(v2);
+        vec.push_back(v3);
+        std::sort( vec.begin(), vec.end() );
+        // if (triangle_map.find(vec) != triangle_map.end()) {
+          t1 = new Triangle(vertices[v1], vertices[v2], vertices[v3], false);
+          // triangle_map[vec] = t1;
+        // } else {
+          // t1 = triangle_map[vec];
+        // }
+        vec.clear();
+
+        vec.push_back(v1);
+        vec.push_back(v2);
+        vec.push_back(v4);
+        std::sort( vec.begin(), vec.end() );
+        // if (triangle_map.find(vec) != triangle_map.end()) {
+          t2 = new Triangle(vertices[v1], vertices[v2], vertices[v4], false);
+          // triangle_map[vec] = t2;
+        // } else {
+          // t2 = triangle_map[vec];
+        // }
+        vec.clear();
+
+        vec.push_back(v1);
+        vec.push_back(v3);
+        vec.push_back(v4);
+        std::sort( vec.begin(), vec.end() );
+        // if (triangle_map.find(vec) != triangle_map.end()) {
+          t3 = new Triangle(vertices[v1], vertices[v3], vertices[v4], false);
+          // triangle_map[vec] = t3;
+        // } else {
+          // t3 = triangle_map[vec];
+        // }
+        vec.clear();
+
+        vec.push_back(v2);
+        vec.push_back(v3);
+        vec.push_back(v4);
+        std::sort( vec.begin(), vec.end() );
+        // if (triangle_map.find(vec) != triangle_map.end()) {
+          t4 = new Triangle(vertices[v2], vertices[v3], vertices[v4], false);
+          // triangle_map[vec] = t4;
+        // } else {
+          // t4 = triangle_map[vec];
+        // }
+        vec.clear();
+        Tetrahedron* tet = new Tetrahedron(t1, t2, t3, t4);
+      }
+      
+    } else if (key == PLANE) {
       Vector3D point, normal;
       double friction;
 
@@ -441,7 +313,7 @@ void loadObjectsFromFile(string json, BrittleObject *brittleObject, BrittleObjec
       }
 
       Plane *p = new Plane(point, normal, friction);
-      objects->push_back(p);
+      coll_objects->push_back(p);
     }
   }
 
@@ -476,13 +348,12 @@ int main(int argc, char **argv) {
 
   // Initialize the object
   brittleObject.buildGrid();
-  brittleObject.buildBrittleObjectMesh();
 
   // Initialize the ClothSimulator object
   app = new ShatterSimulator(screen);
   app->loadObject(&brittleObject);
   app->loadBrittleObjectParameters(&op);
-  app->loadCollisionObjects(&objects);
+  app->loadCollisionObjects(&coll_objects);
   app->init();
 
   // Call this after all the widgets have been defined

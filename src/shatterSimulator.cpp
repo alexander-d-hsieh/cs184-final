@@ -45,9 +45,9 @@ ShatterSimulator::~ShatterSimulator() {
   if (collision_objects) delete collision_objects;
 }
 
-void ShatterSimulator::loadObject(Object *object) { this->object = object; }
+void ShatterSimulator::loadObject(BrittleObject *object) { this->brittle_object = object; }
 
-void ShatterSimulator::loadClothParameters(ObjectParameters *op) { this->op = op; }
+void ShatterSimulator::loadBrittleObjectParameters(BrittleObjectParameters *op) { this->op = op; }
 
 void ShatterSimulator::loadCollisionObjects(vector<CollisionObject *> *objects) { this->collision_objects = objects; }
 
@@ -408,7 +408,7 @@ bool ShatterSimulator::keyCallbackEvent(int key, int scancode, int action,
       break;
     case 'r':
     case 'R':
-      cloth->reset();
+      // cloth->reset();
       break;
     case ' ':
       resetCamera();

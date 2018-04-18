@@ -3,7 +3,8 @@
 
 #include <nanogui/nanogui.h>
 
-#include "../brittleObjectMesh.h"
+#include "../brittleObject.h"
+#include "../pointMass.h"
 
 using namespace CGL;
 using namespace std;

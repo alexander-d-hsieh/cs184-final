@@ -1,7 +1,7 @@
 #include "iostream"
 #include <nanogui/nanogui.h>
 
-#include "../brittleObjectMesh.h"
+#include "../brittleObject.h"
 #include "../shatterSimulator.h"
 #include "plane.h"
 

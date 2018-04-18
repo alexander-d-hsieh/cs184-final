@@ -7,12 +7,50 @@
 
 #include "CGL/CGL.h"
 #include "CGL/misc.h"
-#include "brittleObjectMesh.h"
 #include "collision/collisionObject.h"
 #include "constraint.h"
 
 using namespace CGL;
 using namespace std;
+
+class Triangle;
+class Tetrahedron;
+
+class Vertex {
+public:
+  Vertex(double x, double y, double z, int id) 
+      : pos(x, y, z), id(id) {}
+  Vector3D pos;
+  int id; 
+};
+
+class Triangle {
+public:
+  Triangle(Vertex *v1, Vertex *v2, Vertex *v3, bool face)
+      : v1(v1), v2(v2), v3(v3), face(face) {}
+  // Static references to constituent mesh objects
+  Vertex *v1, *v2, *v3;
+  bool face;
+  Constraint *c;
+  vector<Tetrahedron *> tetrahedra;
+
+  Vector3D normal();
+}; // struct Triangle
+
+class Tetrahedron {
+public:
+  Tetrahedron(Triangle *t1, Triangle *t2, Triangle *t3, Triangle *t4)
+      : t1(t1), t2(t2), t3(t3), t4(t4) {}
+  Triangle *t1;
+  Triangle *t2;
+  Triangle *t3;
+  Triangle *t4;
+  double volume;
+  PointMass *pm;
+
+  Tetrahedron* get_neighbor(Triangle *t);
+
+};
 
 // enum e_orientation { HORIZONTAL = 0, VERTICAL = 1 };
 
@@ -43,7 +81,6 @@ struct BrittleObject {
                 vector<CollisionObject *> *collision_objects);
 
   void reset();
-  void buildBrittleObjectMesh();
 
   // void build_spatial_map();
   // void self_collide(PointMass &pm, double simulation_steps);
@@ -61,7 +98,6 @@ struct BrittleObject {
   // Cloth components
   vector<PointMass> point_masses;
   vector<Constraint> constraints;
-  BrittleObjectMesh *brittleObjectMesh;
 
   // Spatial hashing
   // unordered_map<float, vector<PointMass *> *> map;
