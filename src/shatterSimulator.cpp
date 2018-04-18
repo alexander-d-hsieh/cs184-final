@@ -7,7 +7,7 @@
 #include "shatterSimulator.h"
 
 #include "camera.h"
-#include "object.h"
+#include "brittleObject.h"
 #include "collision/plane.h"
 #include "collision/sphere.h"
 #include "misc/camera_info.h"
@@ -41,7 +41,7 @@ ShatterSimulator::~ShatterSimulator() {
   }
 
   // if (cloth) delete cloth;
-  if (cp) delete cp;
+  if (op) delete op;
   if (collision_objects) delete collision_objects;
 }
 
@@ -162,7 +162,7 @@ void ShatterSimulator::drawWireframe(GLShader &shader) {
 //                     cp->enable_shearing_constraints * num_shear_springs +
 //                     cp->enable_bending_constraints * num_bending_springs;
 
-//   MatrixXf positions(3, num_springs * 2);
+  // MatrixXf positions(3, num_springs * 2);
 //   MatrixXf normals(3, num_springs * 2);
 
 //   // Draw springs as lines

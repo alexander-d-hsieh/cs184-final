@@ -3,7 +3,7 @@
 
 #include <nanogui/nanogui.h>
 
-#include "../clothMesh.h"
+#include "../brittleObjectMesh.h"
 #include "collisionObject.h"
 
 using namespace nanogui;

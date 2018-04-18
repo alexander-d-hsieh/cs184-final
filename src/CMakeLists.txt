@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 # Object simulation source
 set(SHATTERSIM_VIEWER_SOURCE
     # Shatter simulation objects
-    object.cpp
-    objectMesh.cpp
+    brittleObject.cpp
+    brittleObjectMesh.cpp
 
     # Collision objects
     collision/sphere.cpp

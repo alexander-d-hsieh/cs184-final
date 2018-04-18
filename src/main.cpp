@@ -10,7 +10,7 @@
 #include "CGL/CGL.h"
 #include "collision/plane.h"
 #include "collision/sphere.h"
-#include "object.h"
+#include "brittleObject.h"
 #include "shatterSimulator.h"
 #include "json.hpp"
 
@@ -145,11 +145,111 @@ void incompleteObjectError(const char *object, const char *attribute) {
   exit(-1);
 }
 
-void loadObjectsFromFile(string filename, Object *object, ObjectParameters *op, vector<CollisionObject *>* coll_objects) {
+void loadObjectsFromFile(string json, BrittleObject *brittleObject, BrittleObjectParameters *op, vector<CollisionObject *>* coll_objects) {
   // Read JSON from file
-  ifstream i(filename);
-  json j;
-  i >> j;
+  ifstream node(node_file);
+  ifstream face(face_file);
+  ifstream ele(ele_file);
+
+  // Initialize dummy variables used for parsing
+  int d1, d2, d3;
+
+  vector<Vertex *> vertices = vector<Vertex *>();
+
+  int num_vertex;
+  node >> num_vertex >> d1 >> d2 >> d3;
+  double x, y, z;
+  int vertex_index;
+  while (node >> vertex_index >> x >> y >> z) {
+    Vertex* v = new Vertex(x, y, z, vertex_index);
+    //TODO make vertices list
+    vertices.push_back(v);
+  }
+
+  unordered_map<vector<int>, Triangle *> triangle_map = unordered_map<vector<int>, Triangle *>();
+
+  int num_face;
+  face >> num_face >> d1;
+  int face_index, v1, v2, v3, v4;
+  //TODO add unordered set of triangles
+  while (face >> face_index >> v1 >> v2 >> v3 >> d1) {
+    std::vector<int> vec;
+    vec.push_back(v1);
+    vec.push_back(v2);
+    vec.push_back(v3);
+    std::sort( vec.begin(), vec.end() );
+    v1 = vec[0];
+    v2 = vec[1];
+    v3 = vec[2];
+    Triangle *t = new Triangle(vertices[v1], vertices[v2], vertices[v3], true);
+    triangle_map[vec] = t;
+  }
+
+  int num_tetra;
+  ele >> num_tetra >> d1 >> d2;
+  int ele_index;
+  while (ele >> ele_index >> v1 >> v2 >> v3 >> v4) {
+    std::vector<int> vec;
+    Triangle *t1;
+    Triangle *t2;
+    Triangle *t3;
+    Triangle *t4;
+
+    vec.push_back(v1);
+    vec.push_back(v2);
+    vec.push_back(v3);
+    std::sort( vec.begin(), vec.end() );
+    if (triangle_map.find(vec) != triangle_map.end()) {
+      t1 = new Triangle(vertices[v1], vertices[v2], vertices[v3], false);
+      triangle_map[vec] = t1;
+    } else {
+      t1 = triangle_map[vec];
+    }
+    vec.clear();
+
+    vec.push_back(v1);
+    vec.push_back(v2);
+    vec.push_back(v4);
+    std::sort( vec.begin(), vec.end() );
+    if (triangle_map.find(vec) != triangle_map.end()) {
+      t2 = new Triangle(vertices[v1], vertices[v2], vertices[v4], false);
+      triangle_map[vec] = t2;
+    } else {
+      t2 = triangle_map[vec];
+    }
+    vec.clear();
+
+    vec.push_back(v1);
+    vec.push_back(v3);
+    vec.push_back(v4);
+    std::sort( vec.begin(), vec.end() );
+    if (triangle_map.find(vec) != triangle_map.end()) {
+      t3 = new Triangle(vertices[v1], vertices[v3], vertices[v4], false);
+      triangle_map[vec] = t3;
+    } else {
+      t3 = triangle_map[vec];
+    }
+    vec.clear();
+
+    vec.push_back(v2);
+    vec.push_back(v3);
+    vec.push_back(v4);
+    std::sort( vec.begin(), vec.end() );
+    if (triangle_map.find(vec) != triangle_map.end()) {
+      t4 = new Triangle(vertices[v2], vertices[v3], vertices[v4], false);
+      triangle_map[vec] = t4;
+    } else {
+      t4 = triangle_map[vec];
+    }
+    vec.clear();
+
+    Tetrahedron* tet = new Tetrahedron(t1, t2, t3, t4);
+
+  }
+
+  
+
+
 
   // Loop over objects in scene
   for (json::iterator it = j.begin(); it != j.end(); ++it) {
@@ -349,20 +449,20 @@ void loadObjectsFromFile(string filename, Object *object, ObjectParameters *op, 
 }
 
 int main(int argc, char **argv) {
-  Object object;
-  ObjectParameters op;
+  BrittleObject brittleObject;
+  BrittleObjectParameters op;
   vector<CollisionObject *> coll_objects;
 
   if (argc == 1) { // No arguments, default initialization
     string default_file_name = "../scene/pinned2.json";
-    loadObjectsFromFile(default_file_name, &object, &op, &coll_objects);
+    loadObjectsFromFile(default_file_name, &brittleObject, &op, &coll_objects);
   } else {
     int c;
 
     while ((c = getopt (argc, argv, "f:")) != -1) {
       switch (c) {
         case 'f':
-          loadObjectsFromFile(optarg, &object, &op, &coll_objects);
+          loadObjectsFromFile(optarg, &brittleObject, &op, &coll_objects);
           break;
         default:
           usageError(argv[0]);
@@ -375,13 +475,13 @@ int main(int argc, char **argv) {
   createGLContexts();
 
   // Initialize the object
-  object.buildGrid();
-  object.buildObjectMesh();
+  brittleObject.buildGrid();
+  brittleObject.buildBrittleObjectMesh();
 
   // Initialize the ClothSimulator object
   app = new ShatterSimulator(screen);
-  app->loadObject(&object);
-  app->loadObjectParameters(&op);
+  app->loadObject(&brittleObject);
+  app->loadBrittleObjectParameters(&op);
   app->loadCollisionObjects(&objects);
   app->init();
 

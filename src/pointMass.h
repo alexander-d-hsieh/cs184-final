@@ -12,7 +12,7 @@ class Halfedge;
 
 struct PointMass {
   PointMass(Vector3D position)
-      : pinned(pinned), start_position(position), position(position),
+      : start_position(position), position(position),
         last_position(position) {}
 
   Vector3D normal();

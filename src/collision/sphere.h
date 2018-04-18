@@ -1,7 +1,7 @@
 #ifndef COLLISIONOBJECT_SPHERE_H
 #define COLLISIONOBJECT_SPHERE_H
 
-#include "../clothMesh.h"
+#include "../brittleObjectMesh.h"
 #include "collisionObject.h"
 
 using namespace CGL;
