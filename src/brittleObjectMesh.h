@@ -10,6 +10,9 @@
 using namespace CGL;
 using namespace std;
 
+class Triangle;
+class Tetrahedron;
+
 class Vertex {
 public:
   Vertex(double x, double y, double z, int id) 
@@ -26,7 +29,7 @@ public:
   Vertex *v1, *v2, *v3;
   bool face;
   Constraint *c;
-  // vector<Tetrahedron *> tetrahedra;
+  vector<Tetrahedron *> tetrahedra;
 
   Vector3D normal();
 }; // struct Triangle
