@@ -184,15 +184,13 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
 //   return hash;
 // }
 
-///////////////////////////////////////////////////////
-/// YOU DO NOT NEED TO REFER TO ANY CODE BELOW THIS ///
-///////////////////////////////////////////////////////
 
-void BrittleObject::reset() {
+void BrittleObject::reset(double fall_height) {
   PointMass *pm = point_masses[0];
+  Vector3D height_additive (0., fall_height, 0.);
   for (int i = 0; i < point_masses.size(); i++) {
-    pm->position = pm->start_position;
-    pm->last_position = pm->start_position;
+    pm->position = pm->start_position + height_additive;
+    pm->last_position = pm->start_position + height_additive;
     pm++;
   }
 }

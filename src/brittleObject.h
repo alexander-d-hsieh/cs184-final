@@ -108,7 +108,7 @@ struct BrittleObject {
                 vector<Vector3D> external_accelerations,
                 vector<CollisionObject *> *collision_objects);
 
-  void reset();
+  void reset(double fall_height);
 
   // void build_spatial_map();
   // void self_collide(PointMass &pm, double simulation_steps);

@@ -408,7 +408,7 @@ bool ShatterSimulator::keyCallbackEvent(int key, int scancode, int action,
       break;
     case 'r':
     case 'R':
-      // cloth->reset();
+      brittle_object->reset(op->fall_height);
       break;
     case ' ':
       resetCamera();
