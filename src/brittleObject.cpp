@@ -56,13 +56,6 @@ BrittleObject::BrittleObject() {
   this->point_masses = vector<PointMass *>();
 }
 
-BrittleObject::BrittleObject(double width, double height, double depth, int num_width_points,
-            int num_height_points, int num_depth_points) {
-
-  vector<PointMass> point_masses;
-  vector<Constraint> constraints;
-}
-
 BrittleObject::~BrittleObject() {
   point_masses.clear();
   constraints.clear();

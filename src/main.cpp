@@ -379,7 +379,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
 }
 
 int main(int argc, char **argv) {
-  BrittleObject brittleObject = BrittleObject();
+  BrittleObject brittleObject;
   BrittleObjectParameters op;
   vector<CollisionObject *> coll_objects;
 

@@ -100,8 +100,6 @@ struct BrittleObjectParameters {
 
 struct BrittleObject {
   BrittleObject();
-  BrittleObject(double width, double height, double depth, int num_width_points,
-        int num_height_points, int num_depth_points);
   ~BrittleObject();
 
   void simulate(double frames_per_sec, double simulation_steps, BrittleObjectParameters *op,
