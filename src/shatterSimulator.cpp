@@ -503,7 +503,7 @@ void ShatterSimulator::initGUI(Screen *screen) {
     fb->setSpinnable(true);
     fb->setCallback([this](float value) { op->fall_height = (double)(value); });
 
-    new Label(panel, "strenght additive :", "sans-bold");
+    new Label(panel, "strength additive :", "sans-bold");
 
     fb = new FloatBox<double>(panel);
     fb->setEditable(true);
