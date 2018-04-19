@@ -89,14 +89,13 @@ public:
 
 struct BrittleObjectParameters {
   BrittleObjectParameters() {}
-  BrittleObjectParameters(double damping,
-                  double density, double ks)
-      : damping(damping), density(density), ks(ks) {}
+  BrittleObjectParameters(double fall_height, double constraint_strength_additive)
+      : fall_height(fall_height), 
+        constraint_strength_additive(constraint_strength_additive) {}
   ~BrittleObjectParameters() {}
 
-  double damping;
-  double ks;
-  double density;
+  double fall_height;
+  double constraint_strength_additive;
 };
 
 struct BrittleObject {

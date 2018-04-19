@@ -480,41 +480,41 @@ void ShatterSimulator::initGUI(Screen *screen) {
   //       [this](bool state) { cp->enable_bending_constraints = state; });
   // }
 
-  // Mass-spring parameters
+  // Simuation parameters
 
-  // new Label(window, "Parameters", "sans-bold");
+  new Label(window, "Parameters", "sans-bold");
 
-  // {
-  //   Widget *panel = new Widget(window);
-  //   GridLayout *layout =
-  //       new GridLayout(Orientation::Horizontal, 2, Alignment::Middle, 5, 5);
-  //   layout->setColAlignment({Alignment::Maximum, Alignment::Fill});
-  //   layout->setSpacing(0, 10);
-  //   panel->setLayout(layout);
+  {
+    Widget *panel = new Widget(window);
+    GridLayout *layout =
+        new GridLayout(Orientation::Horizontal, 2, Alignment::Middle, 5, 5);
+    layout->setColAlignment({Alignment::Maximum, Alignment::Fill});
+    layout->setSpacing(0, 10);
+    panel->setLayout(layout);
 
-  //   new Label(panel, "density :", "sans-bold");
+    new Label(panel, "fall height :", "sans-bold");
 
-  //   FloatBox<double> *fb = new FloatBox<double>(panel);
-  //   fb->setEditable(true);
-  //   fb->setFixedSize(Vector2i(100, 20));
-  //   fb->setFontSize(14);
-  //   fb->setValue(cp->density / 10);
-  //   fb->setUnits("g/cm^2");
-  //   fb->setSpinnable(true);
-  //   fb->setCallback([this](float value) { cp->density = (double)(value * 10); });
+    FloatBox<double> *fb = new FloatBox<double>(panel);
+    fb->setEditable(true);
+    fb->setFixedSize(Vector2i(100, 20));
+    fb->setFontSize(14);
+    fb->setValue(op->fall_height);
+    fb->setUnits("m");
+    fb->setSpinnable(true);
+    fb->setCallback([this](float value) { op->fall_height = (double)(value); });
 
-  //   new Label(panel, "ks :", "sans-bold");
+    new Label(panel, "strenght additive :", "sans-bold");
 
-  //   fb = new FloatBox<double>(panel);
-  //   fb->setEditable(true);
-  //   fb->setFixedSize(Vector2i(100, 20));
-  //   fb->setFontSize(14);
-  //   fb->setValue(cp->ks);
-  //   fb->setUnits("N/m");
-  //   fb->setSpinnable(true);
-  //   fb->setMinValue(0);
-  //   fb->setCallback([this](float value) { cp->ks = value; });
-  // }
+    fb = new FloatBox<double>(panel);
+    fb->setEditable(true);
+    fb->setFixedSize(Vector2i(100, 20));
+    fb->setFontSize(14);
+    fb->setValue(op->constraint_strength_additive);
+    fb->setUnits("N");
+    fb->setSpinnable(true);
+    fb->setMinValue(0);
+    fb->setCallback([this](float value) { op->constraint_strength_additive = value; });
+  }
 
   // Simulation constants
 

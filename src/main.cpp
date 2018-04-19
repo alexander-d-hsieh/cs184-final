@@ -163,8 +163,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
 
     if (key == OBJECT) {
       string node_file, face_file, ele_file;
-      //TODO figure out what other parameters we want to add to the object data
-      // i.e. density, friction, constraint strength
+      double fall_height, constraint_strength_additive;
 
       auto it_node_file = object.find("node");
       if (it_node_file != object.end()) {
@@ -185,6 +184,21 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         ele_file = *it_ele_file;
       } else {
         incompleteObjectError("object", "ele");
+      }
+
+      auto it_fall_height_param = object.find("fall_height");
+      if (it_fall_height_param != object.end()) {
+        op->fall_height = *it_fall_height_param;
+      } else {
+        incompleteObjectError("object", "fall_height");
+      }
+
+      auto it_constraint_strength_additive_param = 
+          object.find("constraint_strength_additive");
+      if (it_constraint_strength_additive_param != object.end()) {
+        op->constraint_strength_additive = *it_constraint_strength_additive_param;
+      } else {
+        incompleteObjectError("object", "constraint_strength_additive");
       }
 
       ifstream node(node_file);
