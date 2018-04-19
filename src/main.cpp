@@ -370,7 +370,7 @@ int main(int argc, char **argv) {
   vector<CollisionObject *> coll_objects;
 
   if (argc == 1) { // No arguments, default initialization
-    string default_file_name = "../scene/pinned2.json";
+    string default_file_name = "../scene/teapot.json";
     loadObjectsFromFile(default_file_name, &brittleObject, &op, &coll_objects);
   } else {
     int c;
@@ -391,7 +391,6 @@ int main(int argc, char **argv) {
   createGLContexts();
 
   // Initialize the object
-  brittleObject.buildGrid();
 
   // Initialize the ClothSimulator object
   app = new ShatterSimulator(screen);

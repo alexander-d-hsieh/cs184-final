@@ -4,11 +4,13 @@
 #include <nanogui/nanogui.h>
 
 #include "../brittleObject.h"
-#include "../pointMass.h"
 
 using namespace CGL;
 using namespace std;
 using namespace nanogui;
+
+// Forward declaration
+class PointMass;
 
 class CollisionObject {
 public:
