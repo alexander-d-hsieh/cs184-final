@@ -73,30 +73,6 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
                      vector<CollisionObject *> *collision_objects) {
   // double delta_t = 1.0f / frames_per_sec / simulation_steps;
 
-<<<<<<< HEAD
-  // TODO (Part 2.1): Compute total force acting on each point mass.
-  Vector3D external_force = Vector3D();
-  for (Vector3D &external_acc : external_accelerations) {
-    external_force += mass * external_acc;
-  }
-  for (PointMass *pm : point_masses) {
-    pm->forces = Vector3D();
-    pm->forces += external_force;
-  }
-  // for (Spring &s : springs) {
-  //   if ((!cp->enable_structural_constraints && s.spring_type == STRUCTURAL) ||
-  //       (!cp->enable_shearing_constraints && s.spring_type == SHEARING) ||
-  //       (!cp->enable_bending_constraints && s.spring_type == BENDING)) {
-  //     continue;
-  //   }
-  //   double dist = (s.pm_a->position - s.pm_b->position).norm();
-  //   Vector3D spring_corr_force = cp->ks * (dist - s.rest_length) * (s.pm_a->position - s.pm_b->position).unit();
-  //   if (s.spring_type == BENDING) {
-  //     spring_corr_force *= 0.2;
-  //   }
-  //   s.pm_a->forces -= spring_corr_force;
-  //   s.pm_b->forces += spring_corr_force;
-=======
   // Compute total force acting on each point mass.
   // Vector3D external_force = Vector3D();
   // for (Vector3D &external_acc : external_accelerations) {
@@ -105,7 +81,6 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
   // for (PointMass &pm : point_masses) {
   //   pm.forces = Vector3D();
   //   pm.forces += external_force;
->>>>>>> 511abb313c8644c3ddd3fc1a1a06e4091c1d72be
   // }
 
   // Verlet integration to compute new point mass positions

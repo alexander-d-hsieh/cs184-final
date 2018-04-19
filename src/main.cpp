@@ -325,7 +325,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
 
       cout << "total triangles with too many tetrahedra : " << wrong_triangles <<"\n";
 
-      brittleObject->point_masses[0]->tet
+
 
       
 

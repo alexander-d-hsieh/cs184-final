@@ -116,8 +116,8 @@ struct BrittleObject {
   // float hash_position(Vector3D pos);
 
   // Object components
-  vector<PointMass> point_masses;
-  vector<Constraint> constraints;
+  vector<PointMass *> point_masses;
+  vector<Constraint *> constraints;
 
   // Spatial hashing
   // unordered_map<float, vector<PointMass *> *> map;
