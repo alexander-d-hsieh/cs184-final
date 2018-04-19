@@ -347,7 +347,6 @@ int main(int argc, char **argv) {
   createGLContexts();
 
   // Initialize the object
-  brittleObject.buildGrid();
 
   // Initialize the ClothSimulator object
   app = new ShatterSimulator(screen);

@@ -7,14 +7,17 @@
 
 #include "CGL/CGL.h"
 #include "CGL/misc.h"
+#include "CGL/vector3D.h"
 #include "collision/collisionObject.h"
-#include "constraint.h"
 
 using namespace CGL;
 using namespace std;
 
+class Vertex;
 class Triangle;
 class Tetrahedron;
+class PointMass;
+class Constraint;
 
 class Vertex {
 public:
@@ -35,7 +38,7 @@ public:
   vector<Tetrahedron *> tetrahedra;
 
   Vector3D normal();
-}; // struct Triangle
+};
 
 class Tetrahedron {
 public:
@@ -49,10 +52,41 @@ public:
   PointMass *pm;
 
   Tetrahedron* get_neighbor(Triangle *t);
-
 };
 
-// enum e_orientation { HORIZONTAL = 0, VERTICAL = 1 };
+class PointMass {
+public:
+  PointMass(Vector3D position)
+      : start_position(position), position(position),
+        last_position(position) {}
+
+  Vector3D normal();
+  Vector3D velocity(double delta_t);
+
+  // static values
+  Vector3D start_position;
+
+  // dynamic values
+  Vector3D position;
+  Vector3D last_position;
+  Vector3D forces;
+};
+
+class Constraint {
+public:  
+  Constraint(PointMass *a, PointMass *b)
+      : pm_a(a), pm_b(b) {
+    constraint_value = 0;
+  }
+
+  Constraint(PointMass *a, PointMass *b, double constraint_value)
+      : pm_a(a), pm_b(b), constraint_value(constraint_value) {}
+
+  double constraint_value;
+
+  PointMass *pm_a;
+  PointMass *pm_b;
+};
 
 struct BrittleObjectParameters {
   BrittleObjectParameters() {}
@@ -62,10 +96,8 @@ struct BrittleObjectParameters {
   ~BrittleObjectParameters() {}
 
   double damping;
-
-  // Mass-spring parameters
-  double density;
   double ks;
+  double density;
 };
 
 struct BrittleObject {
@@ -73,8 +105,6 @@ struct BrittleObject {
   BrittleObject(double width, double height, double depth, int num_width_points,
         int num_height_points, int num_depth_points);
   ~BrittleObject();
-
-  void buildGrid();
 
   void simulate(double frames_per_sec, double simulation_steps, BrittleObjectParameters *op,
                 vector<Vector3D> external_accelerations,
@@ -86,16 +116,7 @@ struct BrittleObject {
   // void self_collide(PointMass &pm, double simulation_steps);
   // float hash_position(Vector3D pos);
 
-  // Cloth properties
-  double width;
-  double height;
-  double depth;
-  int num_width_points;
-  int num_height_points;
-  int num_depth_points;
-  // double thickness;
-
-  // Cloth components
+  // Object components
   vector<PointMass> point_masses;
   vector<Constraint> constraints;
 
