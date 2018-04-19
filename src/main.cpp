@@ -186,6 +186,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
       } else {
         incompleteObjectError("object", "ele");
       }
+
       ifstream node(node_file);
       ifstream face(face_file);
       ifstream ele(ele_file);
@@ -200,6 +201,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
       node >> num_vertex >> d1 >> d2 >> d3;
       double x, y, z;
       int vertex_index;
+
       while (node >> vertex_index >> x >> y >> z) {
         Vertex* v = new Vertex(x, y, z, vertex_index);
         //TODO make vertices list
@@ -224,67 +226,109 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
       //   Triangle *t = new Triangle(vertices[v1], vertices[v2], vertices[v3], true);
       //   triangle_map[vec] = t;
       // }
-
+      
+      unordered_map<uint64_t, Triangle *> triangle_map = unordered_map<uint64_t, Triangle *>();
+      vector<Triangle *> all_triangles = vector<Triangle *>();
       int num_tetra;
       ele >> num_tetra >> d1 >> d2;
       int ele_index;
+      int lines = 0;
+
       while (ele >> ele_index >> v1 >> v2 >> v3 >> v4) {
-        std::vector<int> vec;
-        Triangle *t1;
-        Triangle *t2;
-        Triangle *t3;
-        Triangle *t4;
+        lines++;
+        vector<uint64_t> vec = vector<uint64_t>();
+        Triangle *t1, *t2, *t3, *t4;
 
         vec.push_back(v1);
         vec.push_back(v2);
         vec.push_back(v3);
         std::sort( vec.begin(), vec.end() );
-        // if (triangle_map.find(vec) != triangle_map.end()) {
+        uint64_t hash = ((vec[0] << 20) + vec[1] << 20) + vec[2];
+        if (triangle_map.find(hash) == triangle_map.end()) {
           t1 = new Triangle(vertices[v1], vertices[v2], vertices[v3], false);
-          // triangle_map[vec] = t1;
-        // } else {
-          // t1 = triangle_map[vec];
-        // }
+          triangle_map[hash] = t1;
+          all_triangles.push_back(t1);
+        } else {
+          t1 = triangle_map[hash];
+        }
         vec.clear();
 
         vec.push_back(v1);
         vec.push_back(v2);
         vec.push_back(v4);
         std::sort( vec.begin(), vec.end() );
-        // if (triangle_map.find(vec) != triangle_map.end()) {
+        hash = ((vec[0] << 20) + vec[1] << 20) + vec[2];
+        if (triangle_map.find(hash) == triangle_map.end()) {
           t2 = new Triangle(vertices[v1], vertices[v2], vertices[v4], false);
-          // triangle_map[vec] = t2;
-        // } else {
-          // t2 = triangle_map[vec];
-        // }
+          triangle_map[hash] = t2;
+          all_triangles.push_back(t2);
+        } else {
+          t2 = triangle_map[hash];
+        }
         vec.clear();
 
         vec.push_back(v1);
         vec.push_back(v3);
         vec.push_back(v4);
         std::sort( vec.begin(), vec.end() );
-        // if (triangle_map.find(vec) != triangle_map.end()) {
+        hash = ((vec[0] << 20) + vec[1] << 20) + vec[2];
+        if (triangle_map.find(hash) == triangle_map.end()) {
           t3 = new Triangle(vertices[v1], vertices[v3], vertices[v4], false);
-          // triangle_map[vec] = t3;
-        // } else {
-          // t3 = triangle_map[vec];
-        // }
+          triangle_map[hash] = t3;
+          all_triangles.push_back(t3);
+        } else {
+          t3 = triangle_map[hash];
+        }
         vec.clear();
 
         vec.push_back(v2);
         vec.push_back(v3);
         vec.push_back(v4);
         std::sort( vec.begin(), vec.end() );
-        // if (triangle_map.find(vec) != triangle_map.end()) {
+        hash = ((vec[0] << 20) + vec[1] << 20) + vec[2];
+        if (triangle_map.find(hash) == triangle_map.end()) {
           t4 = new Triangle(vertices[v2], vertices[v3], vertices[v4], false);
-          // triangle_map[vec] = t4;
-        // } else {
-          // t4 = triangle_map[vec];
-        // }
+          triangle_map[hash] = t4;
+          all_triangles.push_back(t4);
+        } else {
+          t4 = triangle_map[hash];
+        }
         vec.clear();
-        Tetrahedron* tet = new Tetrahedron(t1, t2, t3, t4);
-      }
       
+        Tetrahedron* tet = new Tetrahedron(t1, t2, t3, t4, vertices[v1], vertices[v2], vertices[v3], vertices[v4]);
+        t1->tetrahedra.push_back(tet);
+        t2->tetrahedra.push_back(tet);
+        t3->tetrahedra.push_back(tet);
+        t4->tetrahedra.push_back(tet);
+        brittleObject->point_masses.push_back(tet->pm);
+      }
+
+      vector<Triangle *> surface_triangles = vector<Triangle *>();
+      int wrong_triangles = 0;
+      for (Triangle *triangle: all_triangles) {
+        if (triangle->tetrahedra.size() == 1) {
+          triangle->face = true;
+          surface_triangles.push_back(triangle);
+        } else if (triangle->tetrahedra.size() == 2) {
+          Tetrahedron *a = triangle->tetrahedra[0];
+          Tetrahedron *b = triangle->tetrahedra[1];
+          Constraint *c = new Constraint(a->pm, b->pm);
+          brittleObject->constraints.push_back(c);
+        } else {
+          wrong_triangles++;
+        }
+      }
+      cout << "total surface triangles is: " << surface_triangles.size() <<"\n";
+      cout << "total triangles is: " << all_triangles.size() <<"\n";
+      cout << "total constraints is: " << brittleObject->constraints.size() <<"\n";
+      cout << "total pm is: " << brittleObject->point_masses.size() <<"\n";
+
+      cout << "total triangles with too many tetrahedra : " << wrong_triangles <<"\n";
+
+      brittleObject->point_masses[0]->tet
+
+      
+
     } else if (key == PLANE) {
       Vector3D point, normal;
       double friction;
@@ -321,7 +365,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
 }
 
 int main(int argc, char **argv) {
-  BrittleObject brittleObject;
+  BrittleObject brittleObject = BrittleObject();
   BrittleObjectParameters op;
   vector<CollisionObject *> coll_objects;
 

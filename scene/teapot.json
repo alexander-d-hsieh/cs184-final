@@ -5,9 +5,9 @@
         "friction": 0.5
     },
     "object": {
-        "node" : "tea.1.node",
-        "face" : "tea.1.face",
-        "ele" : "tea.1.ele",
+        "node" : "../scene/teapot.1.node",
+        "face" : "../scene/teapot.1.face",
+        "ele" : "../scene/teapot.1.ele",
         "damping": 0.2,
         "density": 150.0,
         "ks": 5000.0,

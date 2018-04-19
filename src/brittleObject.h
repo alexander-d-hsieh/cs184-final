@@ -26,8 +26,7 @@ public:
 
 class Triangle {
 public:
-  Triangle(Vertex *v1, Vertex *v2, Vertex *v3, bool face)
-      : v1(v1), v2(v2), v3(v3), face(face) {}
+  Triangle(Vertex *v1, Vertex *v2, Vertex *v3, bool face);
   // Static references to constituent mesh objects
   Vertex *v1, *v2, *v3;
   bool face;
@@ -39,8 +38,8 @@ public:
 
 class Tetrahedron {
 public:
-  Tetrahedron(Triangle *t1, Triangle *t2, Triangle *t3, Triangle *t4)
-      : t1(t1), t2(t2), t3(t3), t4(t4) {}
+  Tetrahedron(Triangle *t1, Triangle *t2, Triangle *t3, Triangle *t4, 
+              Vertex *v1, Vertex *v2, Vertex *v3, Vertex *v4);
   Triangle *t1;
   Triangle *t2;
   Triangle *t3;
@@ -69,7 +68,7 @@ struct BrittleObjectParameters {
 };
 
 struct BrittleObject {
-  BrittleObject() {}
+  BrittleObject();
   BrittleObject(double width, double height, double depth, int num_width_points,
         int num_height_points, int num_depth_points);
   ~BrittleObject();
@@ -96,8 +95,8 @@ struct BrittleObject {
   // double thickness;
 
   // Cloth components
-  vector<PointMass> point_masses;
-  vector<Constraint> constraints;
+  vector<PointMass *> point_masses;
+  vector<Constraint *> constraints; 
 
   // Spatial hashing
   // unordered_map<float, vector<PointMass *> *> map;

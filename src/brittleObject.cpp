@@ -9,6 +9,15 @@
 
 using namespace std;
 
+Triangle::Triangle(Vertex *v1, Vertex *v2, Vertex *v3, bool face) {
+  this->v1 = v1;
+  this->v2 = v2;
+  this->v3 = v3;
+  this->face = face;
+
+  this->tetrahedra = vector<Tetrahedron *>();
+}
+
 Vector3D Triangle::normal() {
   // bool clockwise = (x0 - x1) * (y0 + y1) + (x1 - x2) * (y1 + y2) + (x2 - x0) * (y2 + y0) > 0;
 
@@ -23,6 +32,29 @@ Vector3D Triangle::normal() {
 
   return norm;
 };
+
+Tetrahedron::Tetrahedron(Triangle *t1, Triangle *t2, Triangle *t3, Triangle *t4,
+                              Vertex *v1, Vertex *v2, Vertex *v3, Vertex *v4) {
+  this->t1 = t1;
+  this->t2 = t2;
+  this->t3 = t3;
+  this->t4 = t4;
+
+  Vector3D center = Vector3D();
+  center += v1->pos;
+  center += v2->pos;
+  center += v3->pos;
+  center += v4->pos;
+
+  center /= 4.0;
+
+  this->pm = new PointMass(center);
+}
+
+BrittleObject::BrittleObject() {
+  this->constraints = vector<Constraint *>();
+  this->point_masses = vector<PointMass *>();
+}
 
 BrittleObject::BrittleObject(double width, double height, double depth, int num_width_points,
             int num_height_points, int num_depth_points) {
@@ -116,9 +148,9 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
   for (Vector3D &external_acc : external_accelerations) {
     external_force += mass * external_acc;
   }
-  for (PointMass &pm : point_masses) {
-    pm.forces = Vector3D();
-    pm.forces += external_force;
+  for (PointMass *pm : point_masses) {
+    pm->forces = Vector3D();
+    pm->forces += external_force;
   }
   // for (Spring &s : springs) {
   //   if ((!cp->enable_structural_constraints && s.spring_type == STRUCTURAL) ||
@@ -244,7 +276,7 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
 ///////////////////////////////////////////////////////
 
 void BrittleObject::reset() {
-  PointMass *pm = &point_masses[0];
+  PointMass *pm = point_masses[0];
   for (int i = 0; i < point_masses.size(); i++) {
     pm->position = pm->start_position;
     pm->last_position = pm->start_position;
