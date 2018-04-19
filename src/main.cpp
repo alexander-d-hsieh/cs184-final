@@ -257,7 +257,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         vec.push_back(v2);
         vec.push_back(v3);
         std::sort( vec.begin(), vec.end() );
-        uint64_t hash = ((vec[0] << 20) + vec[1] << 20) + vec[2];
+        uint64_t hash = (((vec[0] << 20) + vec[1]) << 20) + vec[2];
         if (triangle_map.find(hash) == triangle_map.end()) {
           t1 = new Triangle(vertices[v1], vertices[v2], vertices[v3], false);
           triangle_map[hash] = t1;
@@ -271,7 +271,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         vec.push_back(v2);
         vec.push_back(v4);
         std::sort( vec.begin(), vec.end() );
-        hash = ((vec[0] << 20) + vec[1] << 20) + vec[2];
+        hash = (((vec[0] << 20) + vec[1]) << 20) + vec[2];
         if (triangle_map.find(hash) == triangle_map.end()) {
           t2 = new Triangle(vertices[v1], vertices[v2], vertices[v4], false);
           triangle_map[hash] = t2;
@@ -285,7 +285,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         vec.push_back(v3);
         vec.push_back(v4);
         std::sort( vec.begin(), vec.end() );
-        hash = ((vec[0] << 20) + vec[1] << 20) + vec[2];
+        hash = (((vec[0] << 20) + vec[1]) << 20) + vec[2];
         if (triangle_map.find(hash) == triangle_map.end()) {
           t3 = new Triangle(vertices[v1], vertices[v3], vertices[v4], false);
           triangle_map[hash] = t3;
@@ -299,7 +299,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         vec.push_back(v3);
         vec.push_back(v4);
         std::sort( vec.begin(), vec.end() );
-        hash = ((vec[0] << 20) + vec[1] << 20) + vec[2];
+        hash = (((vec[0] << 20) + vec[1]) << 20) + vec[2];
         if (triangle_map.find(hash) == triangle_map.end()) {
           t4 = new Triangle(vertices[v2], vertices[v3], vertices[v4], false);
           triangle_map[hash] = t4;
@@ -338,8 +338,6 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
       cout << "total pm is: " << brittleObject->point_masses.size() <<"\n";
 
       cout << "total triangles with too many tetrahedra : " << wrong_triangles <<"\n";
-
-
 
       
 

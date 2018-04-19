@@ -72,26 +72,26 @@ void ShatterSimulator::init() {
 
   Vector3D avg_pm_position(0, 0, 0);
 
-  // for (auto &pm : cloth->point_masses) {
-  //   avg_pm_position += pm.position / cloth->point_masses.size();
-  // }
+  for (PointMass *pm : brittle_object->point_masses) {
+    avg_pm_position += pm->position / brittle_object->point_masses.size();
+  }
 
-  // CGL::Vector3D target(avg_pm_position.x, avg_pm_position.y / 2,
-  //                      avg_pm_position.z);
-  // CGL::Vector3D c_dir(0., 0., 0.);
-  // canonical_view_distance = max(cloth->width, cloth->height) * 0.9;
-  // scroll_rate = canonical_view_distance / 10;
+  CGL::Vector3D target(avg_pm_position.x, avg_pm_position.y / 2,
+                       avg_pm_position.z);
+  CGL::Vector3D c_dir(0., 0., 0.);
+  canonical_view_distance = 9.0;
+  scroll_rate = canonical_view_distance / 10;
 
-  // view_distance = canonical_view_distance * 2;
-  // min_view_distance = canonical_view_distance / 10.0;
-  // max_view_distance = canonical_view_distance * 20.0;
+  view_distance = canonical_view_distance * 2;
+  min_view_distance = canonical_view_distance / 10.0;
+  max_view_distance = canonical_view_distance * 20.0;
 
-  // // canonicalCamera is a copy used for view resets
+  // canonicalCamera is a copy used for view resets
 
-  // camera.place(target, acos(c_dir.y), atan2(c_dir.x, c_dir.z), view_distance,
-  //              min_view_distance, max_view_distance);
-  // canonicalCamera.place(target, acos(c_dir.y), atan2(c_dir.x, c_dir.z),
-  //                       view_distance, min_view_distance, max_view_distance);
+  camera.place(target, acos(c_dir.y), atan2(c_dir.x, c_dir.z), view_distance,
+               min_view_distance, max_view_distance);
+  canonicalCamera.place(target, acos(c_dir.y), atan2(c_dir.x, c_dir.z),
+                        view_distance, min_view_distance, max_view_distance);
 
   screen_w = default_window_size(0);
   screen_h = default_window_size(1);
@@ -110,7 +110,7 @@ void ShatterSimulator::drawContents() {
 
     for (int i = 0; i < simulation_steps; i++) {
       // THIS IS WHERE WE SIMULATE
-      // cloth->simulate(frames_per_sec, simulation_steps, cp, external_accelerations, collision_objects);
+      // brittle_object->simulate(frames_per_sec, simulation_steps, cp, external_accelerations, collision_objects);
     }
   }
 
@@ -144,58 +144,52 @@ void ShatterSimulator::drawContents() {
     break;
   }
 
-  // for (CollisionObject *co : *collision_objects) {
-  //   co->render(shader);
-  // }
+  for (CollisionObject *co : *collision_objects) {
+    co->render(shader);
+  }
 }
 
 void ShatterSimulator::drawWireframe(GLShader &shader) {
-//   int num_structural_springs =
-//       2 * cloth->num_width_points * cloth->num_height_points -
-//       cloth->num_width_points - cloth->num_height_points;
-//   int num_shear_springs =
-//       2 * (cloth->num_width_points - 1) * (cloth->num_height_points - 1);
-//   int num_bending_springs = num_structural_springs - cloth->num_width_points -
-//                             cloth->num_height_points;
+  // int num_structural_springs =
+  //     2 * cloth->num_width_points * cloth->num_height_points -
+  //     cloth->num_width_points - cloth->num_height_points;
+  // int num_shear_springs =
+  //     2 * (cloth->num_width_points - 1) * (cloth->num_height_points - 1);
+  // int num_bending_springs = num_structural_springs - cloth->num_width_points -
+  //                           cloth->num_height_points;
 
-//   int num_springs = cp->enable_structural_constraints * num_structural_springs +
-//                     cp->enable_shearing_constraints * num_shear_springs +
-//                     cp->enable_bending_constraints * num_bending_springs;
+  // int num_springs = cp->enable_structural_constraints * num_structural_springs +
+  //                   cp->enable_shearing_constraints * num_shear_springs +
+  //                   cp->enable_bending_constraints * num_bending_springs;
 
-  // MatrixXf positions(3, num_springs * 2);
-//   MatrixXf normals(3, num_springs * 2);
+  MatrixXf positions(3, brittle_object->constraints.size() * 2);
+  // MatrixXf normals(3, brittle_object->constraints.size() * 2);
 
-//   // Draw springs as lines
+  // Draw springs as lines
 
-//   int si = 0;
+  int si = 0;
 
-//   for (int i = 0; i < cloth->springs.size(); i++) {
-//     Spring s = cloth->springs[i];
+  for (int i = 0; i < brittle_object->constraints.size(); i++) {
+    Constraint *c = brittle_object->constraints[i];
 
-//     if ((s.spring_type == STRUCTURAL && !cp->enable_structural_constraints) ||
-//         (s.spring_type == SHEARING && !cp->enable_shearing_constraints) ||
-//         (s.spring_type == BENDING && !cp->enable_bending_constraints)) {
-//       continue;
-//     }
+    Vector3D pa = c->pm_a->position;
+    Vector3D pb = c->pm_b->position;
 
-//     Vector3D pa = s.pm_a->position;
-//     Vector3D pb = s.pm_b->position;
+    // Vector3D na = c->pm_a->normal();
+    // Vector3D nb = c->pm_b->normal();
 
-//     Vector3D na = s.pm_a->normal();
-//     Vector3D nb = s.pm_b->normal();
+    positions.col(si) << pa.x, pa.y, pa.z;
+    positions.col(si + 1) << pb.x, pb.y, pb.z;
 
-//     positions.col(si) << pa.x, pa.y, pa.z;
-//     positions.col(si + 1) << pb.x, pb.y, pb.z;
+    // normals.col(si) << na.x, na.y, na.z;
+    // normals.col(si + 1) << nb.x, nb.y, nb.z;
 
-//     normals.col(si) << na.x, na.y, na.z;
-//     normals.col(si + 1) << nb.x, nb.y, nb.z;
+    si += 2;
+  }
 
-//     si += 2;
-//   }
-
-//   shader.setUniform("in_color", nanogui::Color(1.0f, 1.0f, 1.0f, 1.0f));
-//   shader.uploadAttrib("in_position", positions);
-//   shader.drawArray(GL_LINES, 0, num_springs * 2);
+  shader.setUniform("in_color", nanogui::Color(1.0f, 1.0f, 1.0f, 1.0f));
+  shader.uploadAttrib("in_position", positions);
+  shader.drawArray(GL_LINES, 0, brittle_object->constraints.size() * 2);
 }
 
 void ShatterSimulator::drawNormals(GLShader &shader) {
