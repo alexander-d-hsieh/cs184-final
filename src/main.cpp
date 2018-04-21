@@ -163,7 +163,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
 
     if (key == OBJECT) {
       string node_file, face_file, ele_file;
-      double fall_height, constraint_strength_additive;
+//      double fall_height, constraint_strength_additive, density;
 
       auto it_node_file = object.find("node");
       if (it_node_file != object.end()) {
@@ -201,6 +201,14 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         incompleteObjectError("object", "constraint_strength_additive");
       }
 
+      auto it_density_param =
+          object.find("density");
+      if (it_constraint_strength_additive_param != object.end()) {
+        op->density = *it_density_param;
+      } else {
+        incompleteObjectError("object", "density");
+      }
+
       ifstream node(node_file);
       ifstream face(face_file);
       ifstream ele(ele_file);
@@ -217,7 +225,8 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
       int vertex_index;
 
       while (node >> vertex_index >> x >> y >> z) {
-        Vertex* v = new Vertex(x, y, z, vertex_index);
+        double adjusted_y = y + op->fall_height;
+        Vertex* v = new Vertex(x, adjusted_y, z, vertex_index);
         //TODO make vertices list
         vertices.push_back(v);
       }
@@ -309,7 +318,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         }
         vec.clear();
       
-        Tetrahedron* tet = new Tetrahedron(t1, t2, t3, t4, vertices[v1], vertices[v2], vertices[v3], vertices[v4]);
+        Tetrahedron* tet = new Tetrahedron(t1, t2, t3, t4, vertices[v1], vertices[v2], vertices[v3], vertices[v4], op->density);
         t1->tetrahedra.push_back(tet);
         t2->tetrahedra.push_back(tet);
         t3->tetrahedra.push_back(tet);

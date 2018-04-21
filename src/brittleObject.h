@@ -22,9 +22,11 @@ class Constraint;
 class Vertex {
 public:
   Vertex(double x, double y, double z, int id) 
-      : pos(x, y, z), id(id) {}
+      : pos(x, y, z), last_pos(x, y, z), id(id), updated(false) {}
   Vector3D pos;
-  int id; 
+  Vector3D last_pos;
+  int id;
+  bool updated;
 };
 
 class Triangle {
@@ -42,8 +44,9 @@ public:
 class Tetrahedron {
 public:
   Tetrahedron(Triangle *t1, Triangle *t2, Triangle *t3, Triangle *t4, 
-              Vertex *v1, Vertex *v2, Vertex *v3, Vertex *v4);
+              Vertex *v1, Vertex *v2, Vertex *v3, Vertex *v4, double density);
   vector<Triangle *> triangles;
+  vector<Vertex *> vertices;
   double volume;
   PointMass *pm;
 
@@ -52,18 +55,22 @@ public:
 
 class PointMass {
 public:
-  PointMass(Vector3D position, Tetrahedron *tetra)
-      : start_position(position), 
+  PointMass(Vector3D position, Tetrahedron *tetra, double density)
+      : start_position(position),
         position(position),
         last_position(position),
-        tetra(tetra) {}
+        tetra(tetra) {
+    computeVolume(density);
+  }
 
   Vector3D normal();
   Vector3D velocity(double delta_t);
+  void computeVolume(double density);
 
   // static values
   Vector3D start_position;
   Tetrahedron *tetra;
+  double mass;
 
   // dynamic values
   Vector3D position;
@@ -90,13 +97,15 @@ public:
 
 struct BrittleObjectParameters {
   BrittleObjectParameters() {}
-  BrittleObjectParameters(double fall_height, double constraint_strength_additive)
+  BrittleObjectParameters(double fall_height, double constraint_strength_additive, double density)
       : fall_height(fall_height), 
-        constraint_strength_additive(constraint_strength_additive) {}
+        constraint_strength_additive(constraint_strength_additive),
+        density(density) {}
   ~BrittleObjectParameters() {}
 
   double fall_height;
   double constraint_strength_additive;
+  double density;
 };
 
 struct BrittleObject {
@@ -109,16 +118,10 @@ struct BrittleObject {
 
   void reset(double fall_height);
 
-  // void build_spatial_map();
-  // void self_collide(PointMass &pm, double simulation_steps);
-  // float hash_position(Vector3D pos);
-
   // Object components
   vector<PointMass *> point_masses;
   vector<Constraint *> constraints;
-
-  // Spatial hashing
-  // unordered_map<float, vector<PointMass *> *> map;
+  Vector3D start_position, position, last_position;
 };
 
 #endif /* CLOTH_H */
