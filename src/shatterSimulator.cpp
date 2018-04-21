@@ -150,22 +150,7 @@ void ShatterSimulator::drawContents() {
 }
 
 void ShatterSimulator::drawWireframe(GLShader &shader) {
-  // int num_structural_springs =
-  //     2 * cloth->num_width_points * cloth->num_height_points -
-  //     cloth->num_width_points - cloth->num_height_points;
-  // int num_shear_springs =
-  //     2 * (cloth->num_width_points - 1) * (cloth->num_height_points - 1);
-  // int num_bending_springs = num_structural_springs - cloth->num_width_points -
-  //                           cloth->num_height_points;
-
-  // int num_springs = cp->enable_structural_constraints * num_structural_springs +
-  //                   cp->enable_shearing_constraints * num_shear_springs +
-  //                   cp->enable_bending_constraints * num_bending_springs;
-
   MatrixXf positions(3, brittle_object->constraints.size() * 2);
-  // MatrixXf normals(3, brittle_object->constraints.size() * 2);
-
-  // Draw springs as lines
 
   int si = 0;
 
@@ -175,14 +160,8 @@ void ShatterSimulator::drawWireframe(GLShader &shader) {
     Vector3D pa = c->pm_a->position;
     Vector3D pb = c->pm_b->position;
 
-    // Vector3D na = c->pm_a->normal();
-    // Vector3D nb = c->pm_b->normal();
-
     positions.col(si) << pa.x, pa.y, pa.z;
     positions.col(si + 1) << pb.x, pb.y, pb.z;
-
-    // normals.col(si) << na.x, na.y, na.z;
-    // normals.col(si + 1) << nb.x, nb.y, nb.z;
 
     si += 2;
   }
@@ -225,41 +204,49 @@ void ShatterSimulator::drawNormals(GLShader &shader) {
 }
 
 void ShatterSimulator::drawPhong(GLShader &shader) {
-  // int num_tris = cloth->clothMesh->triangles.size();
+  vector<Triangle *> face_triangles;
 
-  // MatrixXf positions(3, num_tris * 3);
-  // MatrixXf normals(3, num_tris * 3);
+  for (int i = 0; i < brittle_object->point_masses.size(); i++) {
+    Tetrahedron *tetra = brittle_object->point_masses[i]->tetra;
+    for (int ti = 0; ti < 4; ti++) {
+      Triangle *tri = tetra->triangles[ti];
+      if (tri->face) {
+        face_triangles.push_back(tri);
+      }
+    }
+  }
 
-  // for (int i = 0; i < num_tris; i++) {
-  //   Triangle *tri = cloth->clothMesh->triangles[i];
+  int num_tris = face_triangles.size();
 
-  //   Vector3D p1 = tri->pm1->position;
-  //   Vector3D p2 = tri->pm2->position;
-  //   Vector3D p3 = tri->pm3->position;
+  MatrixXf positions(3, num_tris * 3);
+  MatrixXf normals(3, num_tris * 3);
 
-  //   Vector3D n1 = tri->pm1->normal();
-  //   Vector3D n2 = tri->pm2->normal();
-  //   Vector3D n3 = tri->pm3->normal();
+  for (int i = 0; i < num_tris; i++) {
+    Triangle *tri = face_triangles[i];
+    Vector3D p1 = tri->v1->pos;
+    Vector3D p2 = tri->v2->pos;
+    Vector3D p3 = tri->v3->pos;
+    Vector3D n1 = tri->normal();
+    Vector3D n2 = tri->normal();
+    Vector3D n3 = tri->normal();
+    positions.col(i * 3) << p1.x, p1.y, p1.z;
+    positions.col(i * 3 + 1) << p2.x, p2.y, p2.z;
+    positions.col(i * 3 + 2) << p3.x, p3.y, p3.z;
+    normals.col(i * 3) << n1.x, n1.y, n1.z;
+    normals.col(i * 3 + 1) << n2.x, n2.y, n2.z;
+    normals.col(i * 3 + 2) << n3.x, n3.y, n3.z;
+  }
 
-  //   positions.col(i * 3) << p1.x, p1.y, p1.z;
-  //   positions.col(i * 3 + 1) << p2.x, p2.y, p2.z;
-  //   positions.col(i * 3 + 2) << p3.x, p3.y, p3.z;
+  Vector3D cp = camera.position();
 
-  //   normals.col(i * 3) << n1.x, n1.y, n1.z;
-  //   normals.col(i * 3 + 1) << n2.x, n2.y, n2.z;
-  //   normals.col(i * 3 + 2) << n3.x, n3.y, n3.z;
-  // }
+  shader.setUniform("in_color", color);
+  shader.setUniform("eye", Vector3f(cp.x, cp.y, cp.z));
+  shader.setUniform("light", Vector3f(0.5, 2, 2));
 
-  // Vector3D cp = camera.position();
+  shader.uploadAttrib("in_position", positions);
+  shader.uploadAttrib("in_normal", normals);
 
-  // shader.setUniform("in_color", color);
-  // shader.setUniform("eye", Vector3f(cp.x, cp.y, cp.z));
-  // shader.setUniform("light", Vector3f(0.5, 2, 2));
-
-  // shader.uploadAttrib("in_position", positions);
-  // shader.uploadAttrib("in_normal", normals);
-
-  // shader.drawArray(GL_TRIANGLES, 0, num_tris * 3);
+  shader.drawArray(GL_TRIANGLES, 0, num_tris * 3);
 }
 
 // ----------------------------------------------------------------------------

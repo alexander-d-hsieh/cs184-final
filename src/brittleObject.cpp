@@ -19,8 +19,6 @@ Triangle::Triangle(Vertex *v1, Vertex *v2, Vertex *v3, bool face) {
 }
 
 Vector3D Triangle::normal() {
-  // bool clockwise = (x0 - x1) * (y0 + y1) + (x1 - x2) * (y1 + y2) + (x2 - x0) * (y2 + y0) > 0;
-
   Vector3D v1 = this->v1->pos;
   Vector3D v2 = this->v2->pos;
   Vector3D v3 = this->v3->pos;
@@ -28,17 +26,21 @@ Vector3D Triangle::normal() {
   Vector3D a = v2 - v1;
   Vector3D b = v3 - v1;
 
-  Vector3D norm = cross(a, b) / dot(a, b);
-
-  return norm;
+  // This is incorrect
+  bool clockwise = 
+      (v1.x - v2.x) * (v1.y + v2.y) 
+          + (v2.x - v3.x) * (v2.y + v3.y) 
+          + (v3.x - v1.x) * (v3.y + v1.y) 
+      > 0;
+  return clockwise ? cross(a, b) / dot(a, b) : cross(b, a) / dot(a, b);
 };
 
 Tetrahedron::Tetrahedron(Triangle *t1, Triangle *t2, Triangle *t3, Triangle *t4,
                               Vertex *v1, Vertex *v2, Vertex *v3, Vertex *v4) {
-  this->t1 = t1;
-  this->t2 = t2;
-  this->t3 = t3;
-  this->t4 = t4;
+  triangles.push_back(t1);
+  triangles.push_back(t2);
+  triangles.push_back(t3);
+  triangles.push_back(t4);
 
   Vector3D center = Vector3D();
   center += v1->pos;
@@ -48,7 +50,7 @@ Tetrahedron::Tetrahedron(Triangle *t1, Triangle *t2, Triangle *t3, Triangle *t4,
 
   center /= 4.0;
 
-  this->pm = new PointMass(center);
+  this->pm = new PointMass(center, this);
 }
 
 BrittleObject::BrittleObject() {

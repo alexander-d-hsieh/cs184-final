@@ -43,10 +43,7 @@ class Tetrahedron {
 public:
   Tetrahedron(Triangle *t1, Triangle *t2, Triangle *t3, Triangle *t4, 
               Vertex *v1, Vertex *v2, Vertex *v3, Vertex *v4);
-  Triangle *t1;
-  Triangle *t2;
-  Triangle *t3;
-  Triangle *t4;
+  vector<Triangle *> triangles;
   double volume;
   PointMass *pm;
 
@@ -55,20 +52,24 @@ public:
 
 class PointMass {
 public:
-  PointMass(Vector3D position)
-      : start_position(position), position(position),
-        last_position(position) {}
+  PointMass(Vector3D position, Tetrahedron *tetra)
+      : start_position(position), 
+        position(position),
+        last_position(position),
+        tetra(tetra) {}
 
   Vector3D normal();
   Vector3D velocity(double delta_t);
 
   // static values
   Vector3D start_position;
+  Tetrahedron *tetra;
 
   // dynamic values
   Vector3D position;
   Vector3D last_position;
   Vector3D forces;
+
 };
 
 class Constraint {
