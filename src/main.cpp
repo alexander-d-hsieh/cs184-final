@@ -225,8 +225,9 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
       int vertex_index;
 
       while (node >> vertex_index >> x >> y >> z) {
-        double adjusted_y = y + op->fall_height;
-        Vertex* v = new Vertex(x, adjusted_y, z, vertex_index);
+        Vertex* v = new Vertex(x, y, z, vertex_index);
+        Vector3D height_additive (0., op->fall_height, 0.);
+        v->pos += height_additive;
         //TODO make vertices list
         vertices.push_back(v);
       }

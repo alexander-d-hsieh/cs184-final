@@ -109,8 +109,8 @@ void ShatterSimulator::drawContents() {
     vector<Vector3D> external_accelerations = {gravity};
 
     for (int i = 0; i < simulation_steps; i++) {
-//       THIS IS WHERE WE SIMULATE
-       brittle_object->simulate(frames_per_sec, simulation_steps, op, external_accelerations, collision_objects);
+      // THIS IS WHERE WE SIMULATE
+      brittle_object->simulate(frames_per_sec, simulation_steps, op, external_accelerations, collision_objects);
     }
   }
 
