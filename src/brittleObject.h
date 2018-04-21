@@ -36,7 +36,7 @@ public:
   Constraint *c;
   vector<Tetrahedron *> tetrahedra;
 
-  Vector3D normal();
+  Vector3D normal(Vector3D camera_pos);
 };
 
 class Tetrahedron {

@@ -221,14 +221,16 @@ void ShatterSimulator::drawPhong(GLShader &shader) {
   MatrixXf positions(3, num_tris * 3);
   MatrixXf normals(3, num_tris * 3);
 
+  Vector3D cp = camera.position();
+
   for (int i = 0; i < num_tris; i++) {
     Triangle *tri = face_triangles[i];
     Vector3D p1 = tri->v1->pos;
     Vector3D p2 = tri->v2->pos;
     Vector3D p3 = tri->v3->pos;
-    Vector3D n1 = tri->normal();
-    Vector3D n2 = tri->normal();
-    Vector3D n3 = tri->normal();
+    Vector3D n1 = tri->normal(cp);
+    Vector3D n2 = tri->normal(cp);
+    Vector3D n3 = tri->normal(cp);
     positions.col(i * 3) << p1.x, p1.y, p1.z;
     positions.col(i * 3 + 1) << p2.x, p2.y, p2.z;
     positions.col(i * 3 + 2) << p3.x, p3.y, p3.z;
@@ -236,8 +238,6 @@ void ShatterSimulator::drawPhong(GLShader &shader) {
     normals.col(i * 3 + 1) << n2.x, n2.y, n2.z;
     normals.col(i * 3 + 2) << n3.x, n3.y, n3.z;
   }
-
-  Vector3D cp = camera.position();
 
   shader.setUniform("in_color", color);
   shader.setUniform("eye", Vector3f(cp.x, cp.y, cp.z));

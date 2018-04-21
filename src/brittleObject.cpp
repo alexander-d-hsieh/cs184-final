@@ -18,7 +18,7 @@ Triangle::Triangle(Vertex *v1, Vertex *v2, Vertex *v3, bool face) {
   this->tetrahedra = vector<Tetrahedron *>();
 }
 
-Vector3D Triangle::normal() {
+Vector3D Triangle::normal(Vector3D camera_pos) {
   Vector3D v1 = this->v1->pos;
   Vector3D v2 = this->v2->pos;
   Vector3D v3 = this->v3->pos;
@@ -26,12 +26,7 @@ Vector3D Triangle::normal() {
   Vector3D a = v2 - v1;
   Vector3D b = v3 - v1;
 
-  // This is incorrect
-  bool clockwise = 
-      (v1.x - v2.x) * (v1.y + v2.y) 
-          + (v2.x - v3.x) * (v2.y + v3.y) 
-          + (v3.x - v1.x) * (v3.y + v1.y) 
-      > 0;
+  bool clockwise = dot(camera_pos, cross(a, b) / dot(a, b)) >= 0;
   return clockwise ? cross(a, b) / dot(a, b) : cross(b, a) / dot(a, b);
 };
 
