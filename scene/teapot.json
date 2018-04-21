@@ -8,7 +8,7 @@
         "node" : "../scene/teapot.1.node",
         "face" : "../scene/teapot.1.face",
         "ele" : "../scene/teapot.1.ele",
-        "fall_height": 10.0,
+        "fall_height": 1.6,
         "constraint_strength_additive": 0.0
     }
   }

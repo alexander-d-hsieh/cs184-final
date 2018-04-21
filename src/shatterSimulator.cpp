@@ -110,7 +110,7 @@ void ShatterSimulator::drawContents() {
 
     for (int i = 0; i < simulation_steps; i++) {
       // THIS IS WHERE WE SIMULATE
-      // brittle_object->simulate(frames_per_sec, simulation_steps, cp, external_accelerations, collision_objects);
+      brittle_object->simulate(frames_per_sec, simulation_steps, op, external_accelerations, collision_objects);
     }
   }
 
