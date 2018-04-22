@@ -64,15 +64,11 @@ public:
 
 class Constraint {
 public:  
-  Constraint(Tetrahedron *a, Tetrahedron *b)
-      : tet_a(a), tet_b(b) {
-    constraint_value = 0.0;
-  }
-
-  Constraint(Tetrahedron *a, Tetrahedron *b, double constraint_value)
-      : tet_a(a), tet_b(b), constraint_value(constraint_value) {}
+  Constraint(Tetrahedron *a, Tetrahedron *b, double constraint_value, bool broken)
+      : tet_a(a), tet_b(b), constraint_value(constraint_value), broken(broken) {}
 
   double constraint_value;
+  bool broken;
 
   Tetrahedron *tet_a;
   Tetrahedron *tet_b;

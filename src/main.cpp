@@ -334,20 +334,12 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         } else if (triangle->tetrahedra.size() == 2) {
           Tetrahedron *a = triangle->tetrahedra[0];
           Tetrahedron *b = triangle->tetrahedra[1];
-          Constraint *c = new Constraint(a, b);
+          Constraint *c = new Constraint(a, b, op->constraint_strength_additive, false);
           brittleObject->constraints.push_back(c);
         } else {
           wrong_triangles++;
         }
       }
-      // cout << "total surface triangles is: " << surface_triangles.size() <<"\n";
-      // cout << "total triangles is: " << all_triangles.size() <<"\n";
-      // cout << "total constraints is: " << brittleObject->constraints.size() <<"\n";
-      // cout << "total pm is: " << brittleObject->point_masses.size() <<"\n";
-
-      // cout << "total triangles with too many tetrahedra : " << wrong_triangles <<"\n";
-
-      
 
     } else if (key == PLANE) {
       Vector3D point, normal;

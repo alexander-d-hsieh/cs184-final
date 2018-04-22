@@ -151,13 +151,14 @@ void ShatterSimulator::drawContents() {
   }
 }
 
-void ShatterSimulator::drawWireframe(GLShader &shader) {
-  MatrixXf constraint_positions (3, brittle_object->constraints.size() * 2);
+void drawConstraints(
+    vector<Constraint *> &constraints, nanogui::Color edge_color, GLShader &shader) {
+  MatrixXf constraint_positions (3, constraints.size() * 2);
 
   int si = 0;
 
-  for (int i = 0; i < brittle_object->constraints.size(); i++) {
-    Constraint *c = brittle_object->constraints[i];
+  for (int i = 0; i < constraints.size(); i++) {
+    Constraint *c = constraints[i];
 
     Vector3D pa = c->tet_a->position;
     Vector3D pb = c->tet_b->position;
@@ -168,17 +169,18 @@ void ShatterSimulator::drawWireframe(GLShader &shader) {
     si += 2;
   }
 
-  shader.setUniform("in_color", nanogui::Color(0.f, 0.6f, 0.f, 1.f));
+  shader.setUniform("in_color", edge_color);
   shader.uploadAttrib("in_position", constraint_positions);
-  shader.drawArray(GL_LINES, 0, brittle_object->constraints.size() * 2);
+  shader.drawArray(GL_LINES, 0, constraints.size() * 2);
+}
 
+void drawTetrahedra(vector<Tetrahedron *> &tetrahedra, GLShader &shader) {
+  MatrixXf vertex_positions (3, tetrahedra.size() * 12);
 
-  MatrixXf vertex_positions (3, brittle_object->tetrahedra.size() * 12);
+  int si = 0;
 
-  si = 0;
-
-  for (int i = 0; i < brittle_object->tetrahedra.size(); i++) {
-    Tetrahedron *t = brittle_object->tetrahedra[i];
+  for (int i = 0; i < tetrahedra.size(); i++) {
+    Tetrahedron *t = tetrahedra[i];
 
 
     Vector3D p1 = t->vertices[0]->position;
@@ -210,7 +212,23 @@ void ShatterSimulator::drawWireframe(GLShader &shader) {
 
   shader.setUniform("in_color", nanogui::Color(0.2f, 0.2f, 0.2f, 0.2f));
   shader.uploadAttrib("in_position", vertex_positions);
-  shader.drawArray(GL_LINES, 0, brittle_object->tetrahedra.size() * 12);
+  shader.drawArray(GL_LINES, 0, tetrahedra.size() * 12);
+}
+
+void ShatterSimulator::drawWireframe(GLShader &shader) {
+  vector<Constraint *> satisfied_constraints;
+  vector<Constraint *> broken_constraints;
+  for (Constraint *c : brittle_object->constraints) {
+    if (c->broken) {
+      broken_constraints.push_back(c);
+    } else {
+      satisfied_constraints.push_back(c);
+    }
+  }
+
+  drawConstraints(satisfied_constraints, nanogui::Color(0.f, 0.6f, 0.f, 1.f), shader);
+  drawConstraints(broken_constraints, nanogui::Color(0.6f, 0.f, 0.f, 1.f), shader);
+  drawTetrahedra(brittle_object->tetrahedra, shader);
 }
 
 void ShatterSimulator::drawNormals(GLShader &shader) {
