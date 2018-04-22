@@ -16,7 +16,6 @@ using namespace std;
 class Vertex;
 class Triangle;
 class Tetrahedron;
-// class PointMass;
 class Constraint;
 
 class Vertex {
@@ -62,32 +61,6 @@ public:
 
   Tetrahedron* get_neighbor(Triangle *t);
 };
-
-// class PointMass {
-// public:
-//   PointMass(Vector3D position, Tetrahedron *tetra, double density)
-//       : start_position(position),
-//         position(position),
-//         last_position(position),
-//         tetra(tetra) {
-//     computeVolume(density);
-//   }
-
-//   Vector3D normal();
-//   Vector3D velocity(double delta_t);
-//   void computeVolume(double density);
-
-//   // static values
-//   Vector3D start_position;
-//   Tetrahedron *tetra;
-//   double mass;
-
-//   // dynamic values
-//   Vector3D position;
-//   Vector3D last_position;
-//   Vector3D forces;
-
-// };
 
 class Constraint {
 public:  
