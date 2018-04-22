@@ -152,7 +152,7 @@ void ShatterSimulator::drawContents() {
 }
 
 void ShatterSimulator::drawWireframe(GLShader &shader) {
-  MatrixXf positions(3, brittle_object->constraints.size() * 2);
+  MatrixXf constraint_positions (3, brittle_object->constraints.size() * 2);
 
   int si = 0;
 
@@ -162,15 +162,55 @@ void ShatterSimulator::drawWireframe(GLShader &shader) {
     Vector3D pa = c->tet_a->position;
     Vector3D pb = c->tet_b->position;
 
-    positions.col(si) << pa.x, pa.y, pa.z;
-    positions.col(si + 1) << pb.x, pb.y, pb.z;
+    constraint_positions.col(si) << pa.x, pa.y, pa.z;
+    constraint_positions.col(si + 1) << pb.x, pb.y, pb.z;
 
     si += 2;
   }
 
-  shader.setUniform("in_color", nanogui::Color(1.0f, 1.0f, 1.0f, 1.0f));
-  shader.uploadAttrib("in_position", positions);
+  shader.setUniform("in_color", nanogui::Color(0.f, 0.6f, 0.f, 1.f));
+  shader.uploadAttrib("in_position", constraint_positions);
   shader.drawArray(GL_LINES, 0, brittle_object->constraints.size() * 2);
+
+
+  MatrixXf vertex_positions (3, brittle_object->tetrahedra.size() * 12);
+
+  si = 0;
+
+  for (int i = 0; i < brittle_object->tetrahedra.size(); i++) {
+    Tetrahedron *t = brittle_object->tetrahedra[i];
+
+
+    Vector3D p1 = t->vertices[0]->position;
+    Vector3D p2 = t->vertices[1]->position;
+    Vector3D p3 = t->vertices[2]->position;
+    Vector3D p4 = t->vertices[3]->position;
+
+    // Edge 1 v1<->v2
+    vertex_positions.col(si) << p1.x, p1.y, p1.z;
+    vertex_positions.col(si + 1) << p2.x, p2.y, p2.z;
+    // Edge 2 v1<->v3
+    vertex_positions.col(si + 2) << p1.x, p1.y, p1.z;
+    vertex_positions.col(si + 3) << p3.x, p3.y, p3.z;
+    // Edge 3 v1<->v4
+    vertex_positions.col(si + 4) << p1.x, p1.y, p1.z;
+    vertex_positions.col(si + 5) << p4.x, p4.y, p4.z;
+    // Edge 4 v2<->v3
+    vertex_positions.col(si + 6) << p2.x, p2.y, p2.z;
+    vertex_positions.col(si + 7) << p3.x, p3.y, p3.z;
+    // Edge 5 v2<->v4
+    vertex_positions.col(si + 8) << p2.x, p2.y, p2.z;
+    vertex_positions.col(si + 9) << p4.x, p4.y, p4.z;
+    // Edge 6 v3<->v4
+    vertex_positions.col(si + 10) << p3.x, p3.y, p3.z;
+    vertex_positions.col(si + 11) << p4.x, p4.y, p4.z;
+    
+    si += 12;
+  }
+
+  shader.setUniform("in_color", nanogui::Color(0.2f, 0.2f, 0.2f, 0.2f));
+  shader.uploadAttrib("in_position", vertex_positions);
+  shader.drawArray(GL_LINES, 0, brittle_object->tetrahedra.size() * 12);
 }
 
 void ShatterSimulator::drawNormals(GLShader &shader) {
