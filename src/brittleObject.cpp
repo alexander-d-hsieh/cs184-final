@@ -77,64 +77,52 @@ BrittleObject::~BrittleObject() {
 void BrittleObject::simulate(double frames_per_sec, double simulation_steps, BrittleObjectParameters *op,
                      vector<Vector3D> external_accelerations,
                      vector<CollisionObject *> *collision_objects) {
-   double delta_t = 1.0f / frames_per_sec / simulation_steps;
+double delta_t = 1.0f / frames_per_sec / simulation_steps;
 
-   // Compute total force acting on each point mass.
-   Vector3D external_force = Vector3D();
-   for (PointMass *pm : point_masses) {
-     for (Vector3D &external_acc : external_accelerations) {
-       external_force += external_acc;
-     }
-     pm->forces = Vector3D();
-     pm->forces += external_force * pm->mass;
+  // Compute total force acting on each point mass.
+  for (PointMass *pm : point_masses) {
+    Vector3D external_force = Vector3D();
+    for (Vector3D &external_acc : external_accelerations) {
+      external_force += external_acc;
+    }
+    pm->forces = external_force * pm->mass;
 
-     // reset all vertex update booleans to false
-     for (Vertex *v : pm->tetra->vertices) {
-       v->updated = false;
-     }
-   }
-   double d = 0.2 / 100;
-   Vector3D dir = position - last_position;
-   Vector3D new_pos = position + (1.0 - d) * dir + external_force * pow(delta_t, 2);
-   last_position = position;
-   position = new_pos;
+    // reset all vertex update booleans to false
+    for (Vertex *v : pm->tetra->vertices) {
+      v->updated = false;
+    }
+  }
 
-   Vector3D fall = last_position - position;
+  double damping = 0.2 / 100.0;
 
+  // Verlet integration to compute new point mass positions
+  for (PointMass *pm : point_masses) {
+    Vector3D total_acc = pm->forces / pm->mass;
 
-//  // Verlet integration to compute new point mass positions
-   for (PointMass *pm : point_masses) {
-//     Vector3D total_acc = pm->forces / pm->mass;
-////     double d = op->damping / 100;
-//     double d = 0.2 / 100;
-//     Vector3D dir = pm->position - pm->last_position;
-//     Vector3D new_pos = pm->position + (1.0 - d) * dir + total_acc * pow(delta_t, 2);
-//     pm->last_position = pm->position;
-//     pm->position = new_pos;
-       pm->last_position = pm->position;
-       pm->position = pm->last_position - fall;
+    Vector3D pm_dir = pm->position - pm->last_position;
+    Vector3D new_pm_pos = pm->position + (1.0 - damping) * pm_dir + total_acc * pow(delta_t, 2);
+    pm->last_position = pm->position;
+    pm->position = new_pm_pos;
 
+    // update vertices
+    for (Vertex *v : pm->tetra->vertices) {
+      if (!v->updated) {
+        Vector3D v_dir = v->pos - v->last_pos;
+        Vector3D new_v_pos = v->pos + (1.0 - damping) * v_dir + total_acc * pow(delta_t, 2);
+        v->last_pos = v->pos;
+        v->pos = new_v_pos;
+        v->updated = true;
+      }
+    }
+  }
 
 //
-//     // update vertices
-     for (Vertex *v : pm->tetra->vertices) {
-       if (!v->updated) {
-//         dir = v->pos - v->last_pos;
-//         Vector3D new_pos = v->pos + (1.0 - d) * dir + total_acc * pow(delta_t, 2);
-         v->last_pos = v->pos;
-         v->pos = v->last_pos - fall;
-         v->updated = true;
-       }
-     }
-   }
-
-
-//   // Detect collision with plane
-//   for (PointMass *pm : point_masses) {
-//     for (CollisionObject *co : *collision_objects) {
-//       co->collide(pm);
+//     // Detect collision with plane
+//     for (PointMass *pm : point_masses) {
+//       for (CollisionObject *co : *collision_objects) {
+//         co->collide(pm);
+//       }
 //     }
-//   }
 
 
   // // TODO (Part 2.3): Constrain the changes to be such that the spring does not change
