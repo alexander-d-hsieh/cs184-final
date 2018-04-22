@@ -14,7 +14,7 @@ public:
         friction(friction) {}
 
   void render(GLShader &shader);
-  void collide(PointMass *pm);
+  bool collide(Tetrahedron *tet);
 
 private:
   Vector3D origin;

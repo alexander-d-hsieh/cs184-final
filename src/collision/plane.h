@@ -16,7 +16,7 @@ public:
       : point(point), normal(normal.unit()), friction(friction) {}
 
   void render(GLShader &shader);
-  void collide(PointMass *pm);
+  bool collide(Tetrahedron *tet);
 
   Vector3D point;
   Vector3D normal;

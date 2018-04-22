@@ -7,14 +7,16 @@
 using namespace nanogui;
 using namespace CGL;
 
-void Sphere::collide(PointMass *pm) {
+bool Sphere::collide(Tetrahedron *tet) {
   // TODO (Part 3.1): Handle collisions with spheres.
-  Vector3D dir = pm->position - origin;
-  if (dir.norm() < radius) {
-    Vector3D tangent = origin + (dir.unit() * radius);
-    Vector3D correction = tangent - pm->last_position;
-    pm->position = pm->last_position + correction * (1.0 - friction);
-  }
+  Vector3D dir = tet->position - origin;
+  return dir.norm() < radius;
+  // if (dir.norm() < radius) {
+  //   Vector3D tangent = origin + (dir.unit() * radius);
+  //   Vector3D correction = tangent - tet->last_position;
+  //   tet->position = tet->last_position + correction * (1.0 - friction);
+  // }
+
 }
 
 void Sphere::render(GLShader &shader) {

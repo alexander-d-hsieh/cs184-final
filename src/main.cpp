@@ -317,12 +317,12 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         }
         vec.clear();
       
-        Tetrahedron* tet = new Tetrahedron(t1, t2, t3, t4, vertices[v1], vertices[v2], vertices[v3], vertices[v4], op->density);
+        Tetrahedron* tet = new Tetrahedron(t1, t2, t3, t4, vertices[v1], vertices[v2], vertices[v3], vertices[v4], op->density, ele_index);
         t1->tetrahedra.push_back(tet);
         t2->tetrahedra.push_back(tet);
         t3->tetrahedra.push_back(tet);
         t4->tetrahedra.push_back(tet);
-        brittleObject->point_masses.push_back(tet->pm);
+        brittleObject->tetrahedra.push_back(tet);
       }
 
       vector<Triangle *> surface_triangles = vector<Triangle *>();
@@ -334,18 +334,18 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         } else if (triangle->tetrahedra.size() == 2) {
           Tetrahedron *a = triangle->tetrahedra[0];
           Tetrahedron *b = triangle->tetrahedra[1];
-          Constraint *c = new Constraint(a->pm, b->pm);
+          Constraint *c = new Constraint(a, b);
           brittleObject->constraints.push_back(c);
         } else {
           wrong_triangles++;
         }
       }
-      cout << "total surface triangles is: " << surface_triangles.size() <<"\n";
-      cout << "total triangles is: " << all_triangles.size() <<"\n";
-      cout << "total constraints is: " << brittleObject->constraints.size() <<"\n";
-      cout << "total pm is: " << brittleObject->point_masses.size() <<"\n";
+      // cout << "total surface triangles is: " << surface_triangles.size() <<"\n";
+      // cout << "total triangles is: " << all_triangles.size() <<"\n";
+      // cout << "total constraints is: " << brittleObject->constraints.size() <<"\n";
+      // cout << "total pm is: " << brittleObject->point_masses.size() <<"\n";
 
-      cout << "total triangles with too many tetrahedra : " << wrong_triangles <<"\n";
+      // cout << "total triangles with too many tetrahedra : " << wrong_triangles <<"\n";
 
       
 

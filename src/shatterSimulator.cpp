@@ -70,14 +70,14 @@ void ShatterSimulator::init() {
 
   // Try to intelligently figure out the camera target
 
-  Vector3D avg_pm_position(0, 0, 0);
+  Vector3D avg_tet_position(0, 0, 0);
 
-  for (PointMass *pm : brittle_object->point_masses) {
-    avg_pm_position += pm->position / brittle_object->point_masses.size();
+  for (Tetrahedron *tet : brittle_object->tetrahedra) {
+    avg_tet_position += tet->position / brittle_object->tetrahedra.size();
   }
 
-  CGL::Vector3D target(avg_pm_position.x, avg_pm_position.y / 2,
-                       avg_pm_position.z);
+  CGL::Vector3D target(avg_tet_position.x, avg_tet_position.y / 2,
+                       avg_tet_position.z);
   CGL::Vector3D c_dir(0., 0., 0.);
   canonical_view_distance = 9.0;
   scroll_rate = canonical_view_distance / 10;
@@ -157,8 +157,8 @@ void ShatterSimulator::drawWireframe(GLShader &shader) {
   for (int i = 0; i < brittle_object->constraints.size(); i++) {
     Constraint *c = brittle_object->constraints[i];
 
-    Vector3D pa = c->pm_a->position;
-    Vector3D pb = c->pm_b->position;
+    Vector3D pa = c->tet_a->position;
+    Vector3D pb = c->tet_b->position;
 
     positions.col(si) << pa.x, pa.y, pa.z;
     positions.col(si + 1) << pb.x, pb.y, pb.z;
@@ -206,8 +206,7 @@ void ShatterSimulator::drawNormals(GLShader &shader) {
 void ShatterSimulator::drawPhong(GLShader &shader) {
   vector<Triangle *> face_triangles;
 
-  for (int i = 0; i < brittle_object->point_masses.size(); i++) {
-    Tetrahedron *tetra = brittle_object->point_masses[i]->tetra;
+  for (Tetrahedron *tetra : brittle_object->tetrahedra) {
     for (int ti = 0; ti < 4; ti++) {
       Triangle *tri = tetra->triangles[ti];
       if (tri->face) {
@@ -225,9 +224,9 @@ void ShatterSimulator::drawPhong(GLShader &shader) {
 
   for (int i = 0; i < num_tris; i++) {
     Triangle *tri = face_triangles[i];
-    Vector3D p1 = tri->v1->pos;
-    Vector3D p2 = tri->v2->pos;
-    Vector3D p3 = tri->v3->pos;
+    Vector3D p1 = tri->v1->position;
+    Vector3D p2 = tri->v2->position;
+    Vector3D p3 = tri->v3->position;
     Vector3D n1 = tri->normal(cp);
     Vector3D n2 = tri->normal(cp);
     Vector3D n3 = tri->normal(cp);
@@ -389,7 +388,7 @@ bool ShatterSimulator::keyCallbackEvent(int key, int scancode, int action,
       break;
     case 'r':
     case 'R':
-      brittle_object->reset(op->fall_height);
+      brittle_object->reset();
       break;
     case ' ':
       resetCamera();

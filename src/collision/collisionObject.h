@@ -10,12 +10,12 @@ using namespace std;
 using namespace nanogui;
 
 // Forward declaration
-class PointMass;
+class Tetrahedron;
 
 class CollisionObject {
 public:
   virtual void render(GLShader &shader) = 0;
-  virtual void collide(PointMass *pm) = 0;
+  virtual bool collide(Tetrahedron *tet) = 0;
 
 private:
   double friction;

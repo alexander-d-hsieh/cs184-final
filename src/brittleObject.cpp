@@ -19,9 +19,9 @@ Triangle::Triangle(Vertex *v1, Vertex *v2, Vertex *v3, bool face) {
 }
 
 Vector3D Triangle::normal(Vector3D camera_pos) {
-  Vector3D v1 = this->v1->pos;
-  Vector3D v2 = this->v2->pos;
-  Vector3D v3 = this->v3->pos;
+  Vector3D v1 = this->v1->position;
+  Vector3D v2 = this->v2->position;
+  Vector3D v3 = this->v3->position;
 
   Vector3D a = v2 - v1;
   Vector3D b = v3 - v1;
@@ -31,7 +31,7 @@ Vector3D Triangle::normal(Vector3D camera_pos) {
 };
 
 Tetrahedron::Tetrahedron(Triangle *t1, Triangle *t2, Triangle *t3, Triangle *t4,
-                              Vertex *v1, Vertex *v2, Vertex *v3, Vertex *v4, double density) {
+                              Vertex *v1, Vertex *v2, Vertex *v3, Vertex *v4, double density, int index) {
   triangles = vector<Triangle *>();
   triangles.push_back(t1);
   triangles.push_back(t2);
@@ -45,32 +45,32 @@ Tetrahedron::Tetrahedron(Triangle *t1, Triangle *t2, Triangle *t3, Triangle *t4,
   vertices.push_back(v4);
 
   Vector3D center = Vector3D();
-  center += v1->pos;
-  center += v2->pos;
-  center += v3->pos;
-  center += v4->pos;
+  center += v1->position;
+  center += v2->position;
+  center += v3->position;
+  center += v4->position;
 
   center /= 4.0;
 
-  this->volume = abs(dot(v1->pos - v4->pos, cross(v2->pos - v4->pos, v3->pos - v4->pos))) / 6.0;
-
-  this->pm = new PointMass(center, this, density);
+  this->volume = abs(dot(v1->position - v4->position, cross(v2->position - v4->position, v3->position - v4->position))) / 6.0;
+  this->mass = this->volume * density;
+  this->start_position = center;
+  this->position = center;
+  this->last_position = center;
+  this->id = index;
 }
 
-void PointMass::computeVolume(double density) {
-  this->mass = density * this->tetra->volume;
-}
 
 BrittleObject::BrittleObject() {
   this->constraints = vector<Constraint *>();
-  this->point_masses = vector<PointMass *>();
+  this->tetrahedra = vector<Tetrahedron *>();
   this->start_position = Vector3D();
   this->position = Vector3D();
   this->last_position = Vector3D();
 }
 
 BrittleObject::~BrittleObject() {
-  point_masses.clear();
+  tetrahedra.clear();
   constraints.clear();
 }
 
@@ -80,15 +80,15 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
 double delta_t = 1.0f / frames_per_sec / simulation_steps;
 
   // Compute total force acting on each point mass.
-  for (PointMass *pm : point_masses) {
+  for (Tetrahedron *tet : tetrahedra) {
     Vector3D external_force = Vector3D();
     for (Vector3D &external_acc : external_accelerations) {
       external_force += external_acc;
     }
-    pm->forces = external_force * pm->mass;
+    tet->forces = external_force * tet->mass;
 
     // reset all vertex update booleans to false
-    for (Vertex *v : pm->tetra->vertices) {
+    for (Vertex *v : tet->vertices) {
       v->updated = false;
     }
   }
@@ -96,21 +96,21 @@ double delta_t = 1.0f / frames_per_sec / simulation_steps;
   double damping = 0.2 / 100.0;
 
   // Verlet integration to compute new point mass positions
-  for (PointMass *pm : point_masses) {
-    Vector3D total_acc = pm->forces / pm->mass;
+  for (Tetrahedron *tet : tetrahedra) {
+    Vector3D total_acc = tet->forces / tet->mass;
 
-    Vector3D pm_dir = pm->position - pm->last_position;
-    Vector3D new_pm_pos = pm->position + (1.0 - damping) * pm_dir + total_acc * pow(delta_t, 2);
-    pm->last_position = pm->position;
-    pm->position = new_pm_pos;
+    Vector3D tet_dir = tet->position - tet->last_position;
+    Vector3D new_tet_position = tet->position + (1.0 - damping) * tet_dir + total_acc * pow(delta_t, 2);
+    tet->last_position = tet->position;
+    tet->position = new_tet_position;
 
     // update vertices
-    for (Vertex *v : pm->tetra->vertices) {
+    for (Vertex *v : tet->vertices) {
       if (!v->updated) {
-        Vector3D v_dir = v->pos - v->last_pos;
-        Vector3D new_v_pos = v->pos + (1.0 - damping) * v_dir + total_acc * pow(delta_t, 2);
-        v->last_pos = v->pos;
-        v->pos = new_v_pos;
+        Vector3D v_dir = v->position - v->last_position;
+        Vector3D new_v_position = v->position + (1.0 - damping) * v_dir + total_acc * pow(delta_t, 2);
+        v->last_position = v->position;
+        v->position = new_v_position;
         v->updated = true;
       }
     }
@@ -143,13 +143,29 @@ double delta_t = 1.0f / frames_per_sec / simulation_steps;
   // }
 }
 
+void BrittleObject::reset() {
 
-void BrittleObject::reset(double fall_height) {
-  PointMass *pm = point_masses[0];
-  Vector3D height_additive (0., fall_height, 0.);
-  for (int i = 0; i < point_masses.size(); i++) {
-    pm->position = pm->start_position + height_additive;
-    pm->last_position = pm->start_position + height_additive;
-    pm++;
+  // Vector3D height_additive (0., fall_height, 0.);
+  for (Tetrahedron *tet : tetrahedra) {
+    for (Vertex *v : tet->vertices) {
+      v->updated = false;
+    }
+  }
+  for (Tetrahedron *tet : tetrahedra) {
+    tet->position = tet->start_position;
+    tet->last_position = tet->start_position;
+    for (Vertex *v : tet->vertices) {
+      if (!v->updated) {
+        v->position = v->start_position;
+        v->last_position = v->start_position;
+        v->updated = true;
+      }
+    }
   }
 }
+
+// vector<BrittleObject> BrittleObject::shatter() {
+//   vector<Tetrahedron *> collide_tet = vector<Tetrahedron *>();
+//   for (Tetrahedron *tet : tetrahedra) {
+//   }
+// }
