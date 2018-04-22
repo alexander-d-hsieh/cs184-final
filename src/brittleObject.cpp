@@ -77,14 +77,15 @@ BrittleObject::~BrittleObject() {
 void BrittleObject::simulate(double frames_per_sec, double simulation_steps, BrittleObjectParameters *op,
                      vector<Vector3D> external_accelerations,
                      vector<CollisionObject *> *collision_objects) {
-double delta_t = 1.0f / frames_per_sec / simulation_steps;
+  double delta_t = 1.0f / frames_per_sec / simulation_steps;
 
+  Vector3D external_force = Vector3D();
+  for (Vector3D &external_acc : external_accelerations) {
+    external_force += external_acc;
+  }
+  
   // Compute total force acting on each point mass.
   for (Tetrahedron *tet : tetrahedra) {
-    Vector3D external_force = Vector3D();
-    for (Vector3D &external_acc : external_accelerations) {
-      external_force += external_acc;
-    }
     tet->forces = external_force * tet->mass;
 
     // reset all vertex update booleans to false
@@ -116,13 +117,12 @@ double delta_t = 1.0f / frames_per_sec / simulation_steps;
     }
   }
 
-//
-//     // Detect collision with plane
-//     for (PointMass *pm : point_masses) {
-//       for (CollisionObject *co : *collision_objects) {
-//         co->collide(pm);
-//       }
-//     }
+  // Detect collision with plane
+  for (Tetrahedron *tet : tetrahedra) {
+    for (CollisionObject *co : *collision_objects) {
+      co->collide(tet);
+    }
+  }
 
 
   // // TODO (Part 2.3): Constrain the changes to be such that the spring does not change
