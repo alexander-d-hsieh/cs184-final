@@ -83,7 +83,7 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
   for (Vector3D &external_acc : external_accelerations) {
     external_force += external_acc;
   }
-  
+
   // Compute total force acting on each point mass.
   for (Tetrahedron *tet : tetrahedra) {
     tet->forces = external_force * tet->mass;
