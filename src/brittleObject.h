@@ -126,7 +126,7 @@ struct BrittleObject {
                 vector<Vector3D> external_accelerations,
                 vector<CollisionObject *> *collision_objects);
 
-  void reset();
+  void reset(double fall_height);
 
   vector<BrittleObject> shatter();
 

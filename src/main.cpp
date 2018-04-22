@@ -225,7 +225,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
       int vertex_index;
 
       while (node >> vertex_index >> x >> y >> z) {
-        Vertex* v = new Vertex(x, y + op->fall_height, z, vertex_index);
+        Vertex* v = new Vertex(x, y, z, vertex_index);
         //TODO make vertices list
         vertices.push_back(v);
       }

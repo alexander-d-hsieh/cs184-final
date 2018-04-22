@@ -68,6 +68,8 @@ void ShatterSimulator::init() {
   camera_info.nClip = 0.01;
   camera_info.fClip = 10000;
 
+  brittle_object->reset(op->fall_height);
+
   // Try to intelligently figure out the camera target
 
   Vector3D avg_tet_position(0, 0, 0);
@@ -388,7 +390,7 @@ bool ShatterSimulator::keyCallbackEvent(int key, int scancode, int action,
       break;
     case 'r':
     case 'R':
-      brittle_object->reset();
+      brittle_object->reset(op->fall_height);
       break;
     case ' ':
       resetCamera();

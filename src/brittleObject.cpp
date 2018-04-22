@@ -143,21 +143,21 @@ double delta_t = 1.0f / frames_per_sec / simulation_steps;
   // }
 }
 
-void BrittleObject::reset() {
+void BrittleObject::reset(double fall_height) {
 
-  // Vector3D height_additive (0., fall_height, 0.);
+  Vector3D height_additive (0., fall_height, 0.);
   for (Tetrahedron *tet : tetrahedra) {
     for (Vertex *v : tet->vertices) {
       v->updated = false;
     }
   }
   for (Tetrahedron *tet : tetrahedra) {
-    tet->position = tet->start_position;
-    tet->last_position = tet->start_position;
+    tet->position = tet->start_position + height_additive;
+    tet->last_position = tet->start_position + height_additive;
     for (Vertex *v : tet->vertices) {
       if (!v->updated) {
-        v->position = v->start_position;
-        v->last_position = v->start_position;
+        v->position = v->start_position + height_additive;
+        v->last_position = v->start_position + height_additive;
         v->updated = true;
       }
     }
