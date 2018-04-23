@@ -97,12 +97,13 @@ struct BrittleObject {
 
   void reset(double fall_height);
 
-  vector<BrittleObject> shatter();
+  void shatter();
 
   // Object components
   vector<Tetrahedron *> tetrahedra;
   vector<Constraint *> constraints;
   Vector3D start_position, position, last_position;
+  bool shattered;
 };
 
 #endif /* CLOTH_H */

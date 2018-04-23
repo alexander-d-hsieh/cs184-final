@@ -7,6 +7,8 @@
 #include "collision/plane.h"
 #include "collision/sphere.h"
 
+#define DAMPING_FACTOR 0.002
+
 using namespace std;
 
 Triangle::Triangle(Vertex *v1, Vertex *v2, Vertex *v3, bool face) {
@@ -67,6 +69,7 @@ BrittleObject::BrittleObject() {
   this->start_position = Vector3D();
   this->position = Vector3D();
   this->last_position = Vector3D();
+  this->shattered = false;
 }
 
 BrittleObject::~BrittleObject() {
@@ -74,9 +77,26 @@ BrittleObject::~BrittleObject() {
   constraints.clear();
 }
 
-void BrittleObject::simulate(double frames_per_sec, double simulation_steps, BrittleObjectParameters *op,
-                     vector<Vector3D> external_accelerations,
-                     vector<CollisionObject *> *collision_objects) {
+// Returns whether the BrittleObject has collided with any of the collision objects
+bool collided_with_any_object(
+    vector<CollisionObject *> &collision_objects, vector<Tetrahedron *> &tetrahedra) {
+  for (CollisionObject *co : collision_objects) {
+    for (Tetrahedron *tet : tetrahedra) {
+      if (co->collide(tet)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// Verlet integration under effects of gravity
+void moveObject(
+    double frames_per_sec, 
+    double simulation_steps, 
+    BrittleObjectParameters *op,
+    vector<Vector3D> &external_accelerations,
+    vector<Tetrahedron *> &tetrahedra) {
   double delta_t = 1.0f / frames_per_sec / simulation_steps;
 
   Vector3D external_force = Vector3D();
@@ -94,14 +114,13 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
     }
   }
 
-  double damping = 0.2 / 100.0;
-
   // Verlet integration to compute new point mass positions
   for (Tetrahedron *tet : tetrahedra) {
     Vector3D total_acc = tet->forces / tet->mass;
 
     Vector3D tet_dir = tet->position - tet->last_position;
-    Vector3D new_tet_position = tet->position + (1.0 - damping) * tet_dir + total_acc * pow(delta_t, 2);
+    Vector3D new_tet_position = 
+        tet->position + (1.0 - DAMPING_FACTOR) * tet_dir + total_acc * pow(delta_t, 2);
     tet->last_position = tet->position;
     tet->position = new_tet_position;
 
@@ -109,38 +128,26 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
     for (Vertex *v : tet->vertices) {
       if (!v->updated) {
         Vector3D v_dir = v->position - v->last_position;
-        Vector3D new_v_position = v->position + (1.0 - damping) * v_dir + total_acc * pow(delta_t, 2);
+        Vector3D new_v_position = 
+            v->position + (1.0 - DAMPING_FACTOR) * v_dir + total_acc * pow(delta_t, 2);
         v->last_position = v->position;
         v->position = new_v_position;
         v->updated = true;
       }
     }
   }
+}
 
-  // Detect collision with plane
-  for (Tetrahedron *tet : tetrahedra) {
-    for (CollisionObject *co : *collision_objects) {
-      co->collide(tet);
+void BrittleObject::simulate(double frames_per_sec, double simulation_steps, BrittleObjectParameters *op,
+                     vector<Vector3D> external_accelerations,
+                     vector<CollisionObject *> *collision_objects) {
+  if (!shattered) {
+    moveObject(frames_per_sec, simulation_steps, op, external_accelerations, tetrahedra);
+    if (collided_with_any_object(*collision_objects, tetrahedra)) {
+      shatter();
+      shattered = true;
     }
   }
-
-
-  // // TODO (Part 2.3): Constrain the changes to be such that the spring does not change
-  // // in length more than 10% per timestep [Provot 1995].
-  // for (Spring &s : springs) {
-  //   double max_len = s.rest_length * 1.10;
-  //   Vector3D dir = s.pm_a->position - s.pm_b->position;
-  //   if (dir.norm() > max_len) {
-  //     if (s.pm_a->pinned) {
-  //       s.pm_b->position = s.pm_a->position - (dir.unit() * max_len);
-  //     } else if (s.pm_b->pinned) {
-  //       s.pm_a->position = s.pm_b->position + (dir.unit() * max_len);
-  //     } else {
-  //       s.pm_a->position -= dir.unit() * ((dir.norm() - max_len) / 2);
-  //       s.pm_b->position += dir.unit() * ((dir.norm() - max_len) / 2);
-  //     }
-  //   }
-  // }
 }
 
 void BrittleObject::reset(double fall_height) {
@@ -162,10 +169,13 @@ void BrittleObject::reset(double fall_height) {
       }
     }
   }
+
+  shattered = false;
+  for (Constraint *c : constraints) {
+    c->broken = false;
+  }
 }
 
-// vector<BrittleObject> BrittleObject::shatter() {
-//   vector<Tetrahedron *> collide_tet = vector<Tetrahedron *>();
-//   for (Tetrahedron *tet : tetrahedra) {
-//   }
-// }
+void BrittleObject::shatter() {
+  return;
+}
