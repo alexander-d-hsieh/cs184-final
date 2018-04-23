@@ -25,132 +25,81 @@
 
 <h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2018</h1>
 <h1 align="middle">Final Project: Shattering Brittle Objects</h1>
-<h3 align="middle">Nicole Kinser (25271578), Alexander Hsieh (25452963), Derek Kennedy (25276436)</h2>
+<h2 align="middle">Milestone Status Report</h2>
+<h3 align="middle">Nicole Kinser (25271578), Alexander Hsieh (25452963), Derek Kennedy (25276436)</h3>
+<div>
+    <h2 align="left">Summary</h2>
     <p>
-        This project will simulate a brittle object shattering against the ground.
-        We will attempt to realistically simulate objects, such as glass and ceramic,
-        falling to the ground and the ways in which they break.
+        We used project 4 as our foundation and adapted it to work for our shattering simulation. The first thing we did was find a
+        program online (tetgen) that takes a surface mesh and creates a solid 3D object of tetrahedrons. We used this on teapot.dae and
+        this is what we are using as our model. Our model consists of tetrahedrons, which are comprised of triangles and vertices,
+        and each tetrahedron has a constraint with each of its neighboring tetrahedrons. These constraints are similar in concept to springs
+        from project 4, but they have a constant constraint value which is the distance between the centers of the two constrained
+        tetrahedrons, and when we implement the shattering we will determine where the cracks occur by seeing if there is enough force on the
+        constraint to break it. We make our object fall by using verlet integration (adapted from project 4) and when it intersects the
+        plane (also code adapted from project 4) we stop the teapot there. This is now where we will run our shattering algorithm.
     </p>
 
-    <div>
-
-        <h2 align="left">Problem Description</h2>
-        <p>
-            This problem is important because it is hard for animators to draw an object shattering frame by frame,
-            and this action is a common occurence in both animation and video games, so there should be a way for it to be easily produced,
-            regardless of initial conditions. Additionally, the shattering effect of a brittle object
-            varies widely depending on the initial conditions of the object as well as the magnitude of the
-            force applied onto the object, so a shattering procedure should be able to produce realistic results
-            regardless of the parameters.
-        </p>
-        <p>
-            This problem is challenging because it involves animating of the object
-            dropping or being struck by an object, determining the physics of how an object shatters and how
-            cracks form and propogate along the object, and remeshing of the new fragments after the object has been split.
-        </p>
-        <p>
-            We will solve this problem by implementing one or more of the methods described in the papers mentioned in the <a href="#ref">Resources</a> below.
-        </p>
-
-        <h2 align="left">Goals and Deliverables</h2>
-        <h3 align="left">What we plan to deliver</h3>
-        <ul>
-            <li>
-                <b>What we want to accomplish:</b> A generic brittle object shattering as it is dropped from various different heights, demonstrating our implementation of the fracturing algorithm and its responsiveness to different initial conditions and forces.
-            </li>
-            <li>
-                <b>Desired renderings/demo:</b> We want to produce an animated rendering of an object hitting the ground and shattering.
-                <br>
-                A related photo example:<br>
-                <img src="images/shattered_object.jpg" align="middle" width="400px"/>
-            </li>
-            <li>
-                <b>How we will measure success:</b> It is tough to specify metrics for the quality of the rendering, but successful renderings should look similar to how
-                that object would shatter in the real world, so we will measure success based on whether we think the renderings look realistic.
-            </li>
-        </ul>
-
-        <h3 align="left">What we hope to deliver</h3>
-        <ul>
-            <li>
-                <b>What we want to accomplish:</b> Multiple different brittle material types and rendering demonstrating how the same object made with different materials will shatter.
-            </li>
-            <li>
-                <b>Desired renderings/demo:</b> We want to produce animated renderings of an objects of different materials shattering upon impact with the ground or after being hit by a force. We would like to create an interactive scene that has brittle objects and the user can select the object material and what force to apply to the object, causing it to shatter.
-            </li>
-            <li>
-                <b>How we will measure success:</b> As above, we will measure success based on whether we think the renderings look realistic. If examples exist for how the object will shatter as that material, we will also compare our results to these.
-            </li>
-        </ul>
-
-        <h2 align="left">Schedule</h2>
-
-        <p>
-            Week 1:
-        <ul>
-            <li>Set up GLSL using project 3-2, part 5 as a guide</li>
-            <li>Generate a scene with basic physics of an object falling to the ground</li>
-            <li>Create or find triangle mesh objects such as saucers, bowls, and glass panes that we want to simulate shattering</li>
-        </ul>
-        </p>
-
-        <p>
-            Week 2:
-        <ul>
-            <li>
-                Work on the algorithm described in the papers below and implement one or more different ways of creating shattering effects,
-                ideally having at least one method that is both realistic and fast enough to be rendered in real time
-            </li>
-            <li>
-                Complete the first rendered scene of the utah pot shattering from various different heights
-            </li>
-            <li>
-                Document progress and create milestone video
-            </li>
-        </ul>
-        </p>
-
-        <p>
-            Week 3:
-        <ul>
-            <li>
-                Create some interactive features in the webGL real time rendering for demo purposes
-            </li>
-            <ul>
-                <li>
-                    Create ability to use different materials for the objects
-                </li>
-                <li>
-                    Extend shattering effect beyond just the object dropping. Add ability for shattering when force is applied onto the object
-                </li>
-            </ul>
-        </ul>
-        </p>
-
-        <p>
-            Week 4:
-        <ul>
-            <li>Finishing touches on project</li>
-            <li>Do writeup</li>
-            <li>Make video</li>
-        </ul>
-        </p>
-
-        <h2 align="left" id="ref">Resources</h2>
-
-        <p>
-            Papers:<br>
-            <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable Simulation of the Shattering of Brittle Objects</a>
-            <br>
-            <a href="https://www.ri.cmu.edu/pub_files/pub4/o_brien_james_f_1999_1/o_brien_james_f_1999_1.pdf">Graphical Modeling and Animation of Brittle Fracture</a>
-            <a href="http://graphics.cs.yale.edu/site/sites/files/Fracture.pdf">Real-Time Simulation of Deformation and Fracture of Stiff Materials</a>
-        </p>
-        <p>
-            Software Platform: GLSL shaders using webGL. We will most likely be using the webGL code from project 3-2 part 5 as a starting point.
-            <br>
-            Computing/Hardware Platform: Macbook Pro
-        </p>
-
+    <h2 align="left">Preliminary Results</h2>
+    <p>
+        We have the Utah pot falling from a specified height and stopping when it hits the plane. It can be rendered with a wireframe, which
+        shows the tetrahedron mesh as well as the constraints between the tetrahedrons (in green), or with normal shading.
+    </p>
+    <div align="center">
+        <table style="width=100%">
+            <tr>
+                <td>
+                    <img src="../images/wireframe.png" align="middle" width="400px"/>
+                    <figcaption>Wireframe rendering. Constraints are in green.</figcaption>
+                </td>
+                <td>
+                    <img src="../images/shaded.png" align="middle" width="400px"/>
+                    <figcaption align="middle">Shaded rendering.</figcaption>
+                </td>
+            </tr>
+        </table>
     </div>
+
+    <h2 align="left">Updated Plan</h2>
+    <p>
+        Our original schedule was a bit too ambitious. We completed all of our week one goals, but we have only just started working on the
+        shattering algorithm. We also realized that getting the object to shatter and fall apart realistically would be incredibly difficult
+        because it requires simulating rigid bodies, so we are now aiming to just fracture the object and visualize the cracks. Getting the
+        pieces to fall apart is now a stretch goal.
+        <br>
+        Below is our updated timeline for the next two weeks:
+    </p>
+
+    <p>
+        Week 3:
+        <ul>
+            <li>
+                Continue working on the algorithm described in the paper <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable Simulation of the Shattering of Brittle Objects</a>
+            </li>
+            <li>
+                Show the fractures/cracks that form when the object hits the plane.
+            </li>
+            <li>
+                If visualizing the cracking doesn't take too long to do, work on simulating the cracked pieces falling to the plane. This is
+                a big stretch goal because it deals with simulating rigid bodies.
+            </li>
+        </ul>
+    </p>
+
+    <p>
+        Week 4:
+        <ul>
+            <li>
+                Finishing touches on project
+            </li>
+            <li>
+                Do writeup
+            </li>
+            <li>
+                Make video
+            </li>
+    </ul>
+    </p>
+</div>
 </body>
 </html>
