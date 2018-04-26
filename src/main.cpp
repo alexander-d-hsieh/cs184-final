@@ -163,7 +163,6 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
 
     if (key == OBJECT) {
       string node_file, face_file, ele_file;
-//      double fall_height, constraint_strength_additive, density;
 
       auto it_node_file = object.find("node");
       if (it_node_file != object.end()) {
@@ -334,9 +333,11 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         } else if (triangle->tetrahedra.size() == 2) {
           Tetrahedron *a = triangle->tetrahedra[0];
           Tetrahedron *b = triangle->tetrahedra[1];
-          double tri_area = (cross(triangle->v1->position - triangle->v2->position, triangle->v3->position - triangle->v2->position)).norm() / 2.0;
+          double tri_area = (cross(triangle->v1->position - triangle->v2->position,
+                                   triangle->v3->position - triangle->v2->position)).norm() / 2.0;
           double tet_volume = a->volume + b->volume;
-          Constraint *c = new Constraint(a, b, op->constraint_strength_additive, true);
+          double constraint_value = tri_area + 0.5 * tet_volume;
+          Constraint *c = new Constraint(a, b, op->constraint_strength_additive + constraint_value, true);
           triangle->c = c;
           brittleObject->constraints.push_back(c);
         } else {
