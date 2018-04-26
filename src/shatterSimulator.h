@@ -110,6 +110,9 @@ private:
   bool is_alive = true;
 
   Vector2i default_window_size = Vector2i(1024, 800);
+
+  IntBox<int> *num_broken_constraints_box;
+  IntBox<int> *num_satisfied_constraints_box;
 };
 
 #endif // CGL_CLOTH_SIM_H

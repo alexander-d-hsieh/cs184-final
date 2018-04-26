@@ -69,6 +69,14 @@ void ShatterSimulator::init() {
   camera_info.fClip = 10000;
 
   brittle_object->reset(op->fall_height);
+  // for (Tetrahedron *tetra : brittle_object->tetrahedra) {
+  //   for (int ti = 0; ti < 4; ti++) {
+  //     Triangle *tri = tetra->triangles[ti];
+  //     if (tri->v1->position.x > 0.45 && tri->c != nullptr) {
+  //       tri->c->broken = true;
+  //     } 
+  //   }   
+  // }
 
   // Try to intelligently figure out the camera target
 
@@ -276,9 +284,9 @@ void ShatterSimulator::drawWireframeCracks(GLShader &shader) {
     }
   }
 
+  drawWireframeTrianglesWithColor(cracked_triangles, color, shader);
   drawWireframeTrianglesWithColor(
       face_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
-  drawWireframeTrianglesWithColor(cracked_triangles, color, shader);
 }
 
 void ShatterSimulator::drawPhong(GLShader &shader) {
@@ -625,7 +633,10 @@ void ShatterSimulator::initGUI(Screen *screen) {
 
   // Simulation statistics
 
-  new Label(window, "Simulation Stats", "sans-bold");
+  new Label(
+      window, 
+      "Simulation Stats (Click arrows in box to update stats)", 
+      "sans-bold");
 
   {
     Widget *panel = new Widget(window);
@@ -651,24 +662,34 @@ void ShatterSimulator::initGUI(Screen *screen) {
     num_total_constraints->setFontSize(14);
     num_total_constraints->setValue(brittle_object->constraints.size());
 
-    int broken_constraints_size = 
-        get_num_broken_constraints(brittle_object->constraints);
-
     new Label(panel, "satisfied constraints :", "sans-bold");
 
     IntBox<int> *num_satisfied_constraints = new IntBox<int>(panel);
+    num_satisfied_constraints_box = num_satisfied_constraints;
     num_satisfied_constraints->setEditable(false);
+    num_satisfied_constraints->setSpinnable(true);
     num_satisfied_constraints->setFixedSize(Vector2i(100, 20));
     num_satisfied_constraints->setFontSize(14);
     num_satisfied_constraints->setValue(
-      brittle_object->constraints.size() - broken_constraints_size);
+        brittle_object->constraints.size() 
+            - get_num_broken_constraints(brittle_object->constraints));
+    num_satisfied_constraints->setCallback(
+      [this](int value) { num_satisfied_constraints_box->setValue(
+          brittle_object->constraints.size() 
+              - get_num_broken_constraints(brittle_object->constraints)); });
 
     new Label(panel, "broken constraints :", "sans-bold");
 
     IntBox<int> *num_broken_constraints = new IntBox<int>(panel);
+    num_broken_constraints_box = num_broken_constraints;
     num_broken_constraints->setEditable(false);
+    num_broken_constraints->setSpinnable(true);
     num_broken_constraints->setFixedSize(Vector2i(100, 20));
     num_broken_constraints->setFontSize(14);
-    num_broken_constraints->setValue(broken_constraints_size);
+    num_broken_constraints->setValue(
+          get_num_broken_constraints(brittle_object->constraints));
+    num_broken_constraints->setCallback(
+      [this](int value) { num_broken_constraints_box->setValue(
+          get_num_broken_constraints(brittle_object->constraints)); });
   }
 }
