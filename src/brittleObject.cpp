@@ -87,10 +87,12 @@ BrittleObject::~BrittleObject() {
 
 // Returns whether the BrittleObject has collided with any of the collision objects
 bool collided_with_any_object(
-    vector<CollisionObject *> &collision_objects, vector<Tetrahedron *> &tetrahedra) {
+    vector<CollisionObject *> &collision_objects, 
+    vector<Tetrahedron *> &tetrahedra, 
+    Vector3D *adjustment) {
   for (CollisionObject *co : collision_objects) {
     for (Tetrahedron *tet : tetrahedra) {
-      if (co->collide(tet)) {
+      if (co->collide(tet, adjustment)) {
         return true;
       }
     }
@@ -144,14 +146,28 @@ void moveObject(
   }
 }
 
+// Adjust each point mass and vertex so that after intersection the object rests on the plane.
+void adjustToPlane(vector<Tetrahedron *> &tetrahedra, Vector3D adjustment) {
+  for (Tetrahedron *tet : tetrahedra) {
+    tet->position = tet->last_position + adjustment;
+
+    // update vertices
+    for (Vertex *v : tet->vertices) {
+      v->position = v->last_position + adjustment;
+    }
+  }
+}
+
 void BrittleObject::simulate(double frames_per_sec, double simulation_steps, BrittleObjectParameters *op,
                      vector<Vector3D> external_accelerations,
                      vector<CollisionObject *> *collision_objects) {
   double delta_t = 1.0f / frames_per_sec / simulation_steps;
   if (!shattered) {
     moveObject(delta_t, op, external_accelerations, tetrahedra);
-    if (collided_with_any_object(*collision_objects, tetrahedra)) {
-      shatter((*collision_objects)[0], delta_t);
+    Vector3D adjustment = Vector3D();
+    if (collided_with_any_object(*collision_objects, tetrahedra, &adjustment)) {
+      adjustToPlane(tetrahedra, adjustment);
+      // shatter((*collision_objects)[0], delta_t);
       shattered = true;
     }
   }
@@ -189,7 +205,8 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
   VectorXd Q(tetrahedra.size());
   for (int i = 0; i < tetrahedra.size(); i++) {
     Tetrahedron *tet = tetrahedra[i];
-    if (collision_object->collide(tet)) {
+    Vector3D adjustment = Vector3D();
+    if (collision_object->collide(tet, &adjustment)) {
       Vector3D tet_velocity = tet->last_position - tet->position;
       double impact_force = collision_object->impact_force(tet, delta_t);
       Q(i) = -impact_force;

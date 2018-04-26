@@ -7,7 +7,7 @@
 using namespace nanogui;
 using namespace CGL;
 
-bool Sphere::collide(Tetrahedron *tet) {
+bool Sphere::collide(Tetrahedron *tet, Vector3D *adjustment) {
   // TODO (Part 3.1): Handle collisions with spheres.
   Vector3D dir = tet->position - origin;
   return dir.norm() < radius;

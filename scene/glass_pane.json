@@ -1,0 +1,16 @@
+{
+    "plane": {
+        "point": [0, 0, 0],
+        "normal": [0, 1, 0],
+        "friction": 0.5
+    },
+    "object": {
+        "node" : "../scene/glass_pane.node",
+        "face" : "../scene/glass_pane.face",
+        "ele" : "../scene/glass_pane.ele",
+        "fall_height": 10.0,
+        "constraint_strength_additive": 0.0,
+        "density": 2400
+    }
+  }
+  

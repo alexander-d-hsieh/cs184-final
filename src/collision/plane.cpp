@@ -10,19 +10,20 @@ using namespace CGL;
 
 #define SURFACE_OFFSET 0.0001
 
-bool Plane::collide(Tetrahedron *tet) {
+bool Plane::collide(Tetrahedron *tet, Vector3D *adjustment) {
   // TODO (Part 3.2): Handle collisions with planes.
   Vector3D last_pos_dir = tet->last_position - point;
   Vector3D pos_dir = tet->position - point;
   double dot1 = dot(last_pos_dir, normal);
   double dot2 = dot(pos_dir, normal);
   bool intersects = (dot1 <= 0 && dot2 > 0) || (dot1 >= 0 && dot2 < 0) || (dot1 < 0 && dot2 >= 0) || (dot1 > 0 && dot2 <= 0);
-  // if (intersects) {
-  //   double t = dot(point - tet->position, normal) / dot(-normal, normal);
-  //   Vector3D tangent = tet->position + t * -normal;
-  //   Vector3D correction = tangent - tet->last_position + (SURFACE_OFFSET * normal);
-  //   tet->position = tet->last_position + correction * (1.0 - friction);
-  // }
+  if (intersects) {
+    double t = dot(point - tet->position, normal) / dot(-normal, normal);
+    Vector3D tangent = tet->position + t * -normal;
+    Vector3D correction = tangent - tet->last_position + (SURFACE_OFFSET * normal);
+    *adjustment = correction;
+    // tet->position = tet->last_position + correction * (1.0 - friction);
+  }
   return intersects;
 }
 

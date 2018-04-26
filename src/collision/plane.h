@@ -16,7 +16,7 @@ public:
       : point(point), normal(normal.unit()), friction(friction) {}
 
   void render(GLShader &shader);
-  bool collide(Tetrahedron *tet);
+  bool collide(Tetrahedron *tet, Vector3D *adjustment);
   double impact_force(Tetrahedron *tet, double delta_t);
 
   Vector3D point;
