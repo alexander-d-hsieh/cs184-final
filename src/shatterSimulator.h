@@ -33,8 +33,8 @@ public:
 
 private:
   virtual void initGUI(Screen *screen);
-  void drawWireframe(GLShader &shader);
-  void drawNormals(GLShader &shader);
+  void drawWireframeConstraints(GLShader &shader);
+  void drawWireframeCracks(GLShader &shader);
   void drawPhong(GLShader &shader);
 
   // Camera methods
@@ -57,13 +57,13 @@ private:
 
   // OpenGL attributes
 
-  enum e_shader { WIREFRAME = 0, NORMALS = 1, PHONG = 2 };
-  e_shader activeShader = WIREFRAME;
+  enum e_shader { WIREFRAME_CONSTRAINTS = 0, WIREFRAME_CRACKS = 1, PHONG = 2 };
+  e_shader activeShader = WIREFRAME_CONSTRAINTS;
 
   vector<GLShader> shaders;
 
-  GLShader wireframeShader;
-  GLShader normalShader;
+  GLShader wireframeConstraintsShader;
+  GLShader wireframeCracksShader;
   GLShader phongShader;
 
   // Camera attributes
