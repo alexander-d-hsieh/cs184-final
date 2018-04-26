@@ -20,15 +20,15 @@ ShatterSimulator::ShatterSimulator(Screen *screen) {
 
   // Initialize OpenGL buffers and shaders
 
-  wireframeShader.initFromFiles("Wireframe", "../shaders/camera.vert",
+  wireframeConstraintsShader.initFromFiles("Wireframe Constraints", "../shaders/camera.vert",
                                 "../shaders/wireframe.frag");
-  normalShader.initFromFiles("Normal", "../shaders/camera.vert",
-                             "../shaders/normal.frag");
+  wireframeCracksShader.initFromFiles("Wireframe Faces", "../shaders/camera.vert",
+                             "../shaders/wireframe.frag");
   phongShader.initFromFiles("Phong", "../shaders/camera.vert",
                             "../shaders/phong.frag");
 
-  shaders.push_back(wireframeShader);
-  shaders.push_back(normalShader);
+  shaders.push_back(wireframeConstraintsShader);
+  shaders.push_back(wireframeCracksShader);
   shaders.push_back(phongShader);
 
   glEnable(GL_PROGRAM_POINT_SIZE);
@@ -135,11 +135,11 @@ void ShatterSimulator::drawContents() {
   shader.setUniform("viewProjection", viewProjection);
 
   switch (activeShader) {
-  case WIREFRAME:
-    drawWireframe(shader);
+  case WIREFRAME_CONSTRAINTS:
+    drawWireframeConstraints(shader);
     break;
-  case NORMALS:
-    drawNormals(shader);
+  case WIREFRAME_CRACKS:
+    drawWireframeCracks(shader);
     break;
   case PHONG:
     drawPhong(shader);
@@ -174,7 +174,7 @@ void drawConstraints(
   shader.drawArray(GL_LINES, 0, constraints.size() * 2);
 }
 
-void drawTetrahedra(vector<Tetrahedron *> &tetrahedra, GLShader &shader) {
+void drawWireframeTetrahedra(vector<Tetrahedron *> &tetrahedra, GLShader &shader) {
   MatrixXf vertex_positions (3, tetrahedra.size() * 12);
 
   int si = 0;
@@ -215,7 +215,7 @@ void drawTetrahedra(vector<Tetrahedron *> &tetrahedra, GLShader &shader) {
   shader.drawArray(GL_LINES, 0, tetrahedra.size() * 12);
 }
 
-void ShatterSimulator::drawWireframe(GLShader &shader) {
+void ShatterSimulator::drawWireframeConstraints(GLShader &shader) {
   vector<Constraint *> satisfied_constraints;
   vector<Constraint *> broken_constraints;
   for (Constraint *c : brittle_object->constraints) {
@@ -228,39 +228,57 @@ void ShatterSimulator::drawWireframe(GLShader &shader) {
 
   drawConstraints(satisfied_constraints, nanogui::Color(0.f, 0.6f, 0.f, 1.f), shader);
   drawConstraints(broken_constraints, nanogui::Color(0.6f, 0.f, 0.f, 1.f), shader);
-  drawTetrahedra(brittle_object->tetrahedra, shader);
+  drawWireframeTetrahedra(brittle_object->tetrahedra, shader);
 }
 
-void ShatterSimulator::drawNormals(GLShader &shader) {
-  // int num_tris = cloth->clothMesh->triangles.size();
+void drawWireframeTrianglesWithColor(
+      vector<Triangle *> &triangles, nanogui::Color line_color, GLShader &shader) {
+  int num_tris = triangles.size();
 
-  // MatrixXf positions(3, num_tris * 3);
-  // MatrixXf normals(3, num_tris * 3);
+  MatrixXf positions(3, num_tris * 6);
 
-  // for (int i = 0; i < num_tris; i++) {
-  //   Triangle *tri = cloth->clothMesh->triangles[i];
+  int si = 0;
+  for (int i = 0; i < num_tris; i++) {
+    Triangle *tri = triangles[i];
+    Vector3D p1 = tri->v1->position;
+    Vector3D p2 = tri->v2->position;
+    Vector3D p3 = tri->v3->position;
+    positions.col(si) << p1.x, p1.y, p1.z;
+    positions.col(si + 1) << p2.x, p2.y, p2.z;
+    positions.col(si + 2) << p1.x, p1.y, p1.z;
+    positions.col(si + 3) << p3.x, p3.y, p3.z;
+    positions.col(si + 4) << p2.x, p2.y, p2.z;
+    positions.col(si + 5) << p3.x, p3.y, p3.z;
 
-  //   Vector3D p1 = tri->pm1->position;
-  //   Vector3D p2 = tri->pm2->position;
-  //   Vector3D p3 = tri->pm3->position;
+    si += 6;
+  }
+  
+  shader.setUniform("in_color", line_color);
+  shader.uploadAttrib("in_position", positions);
 
-  //   Vector3D n1 = tri->pm1->normal();
-  //   Vector3D n2 = tri->pm2->normal();
-  //   Vector3D n3 = tri->pm3->normal();
+  shader.drawArray(GL_LINES, 0, num_tris * 6);
+}
 
-  //   positions.col(i * 3) << p1.x, p1.y, p1.z;
-  //   positions.col(i * 3 + 1) << p2.x, p2.y, p2.z;
-  //   positions.col(i * 3 + 2) << p3.x, p3.y, p3.z;
+void ShatterSimulator::drawWireframeCracks(GLShader &shader) {
+  vector<Triangle *> face_triangles;
+  vector<Triangle *> cracked_triangles;
 
-  //   normals.col(i * 3) << n1.x, n1.y, n1.z;
-  //   normals.col(i * 3 + 1) << n2.x, n2.y, n2.z;
-  //   normals.col(i * 3 + 2) << n3.x, n3.y, n3.z;
-  // }
+  for (Tetrahedron *tetra : brittle_object->tetrahedra) {
+    for (int ti = 0; ti < 4; ti++) {
+      Triangle *tri = tetra->triangles[ti];
+      
+      if (tri->c != nullptr && tri->c->broken) {
+        cracked_triangles.push_back(tri);
+      }
+      if (tri->face) {
+        face_triangles.push_back(tri);
+      }
+    }
+  }
 
-  // shader.uploadAttrib("in_position", positions);
-  // shader.uploadAttrib("in_normal", normals);
-
-  // shader.drawArray(GL_TRIANGLES, 0, num_tris * 3);
+  drawWireframeTrianglesWithColor(
+      face_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
+  drawWireframeTrianglesWithColor(cracked_triangles, color, shader);
 }
 
 void ShatterSimulator::drawPhong(GLShader &shader) {
@@ -300,7 +318,7 @@ void ShatterSimulator::drawPhong(GLShader &shader) {
 
   shader.setUniform("in_color", color);
   shader.setUniform("eye", Vector3f(cp.x, cp.y, cp.z));
-  shader.setUniform("light", Vector3f(0.5, 2, 2));
+  shader.setUniform("light", Vector3f(3, 5, 2));
 
   shader.uploadAttrib("in_position", positions);
   shader.uploadAttrib("in_normal", normals);
@@ -669,7 +687,8 @@ void ShatterSimulator::initGUI(Screen *screen) {
   new Label(window, "Appearance", "sans-bold");
 
   {
-    ComboBox *cb = new ComboBox(window, {"Wireframe", "Normals", "Shaded"});
+    ComboBox *cb = new ComboBox(window, 
+        {"Wireframe Constraints", "Wireframe Cracks", "Opaque Shaded"});
     cb->setFontSize(14);
     cb->setCallback(
         [this, screen](int idx) { activeShader = static_cast<e_shader>(idx); });

@@ -331,10 +331,12 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         if (triangle->tetrahedra.size() == 1) {
           triangle->face = true;
           surface_triangles.push_back(triangle);
+          triangle->c = nullptr;
         } else if (triangle->tetrahedra.size() == 2) {
           Tetrahedron *a = triangle->tetrahedra[0];
           Tetrahedron *b = triangle->tetrahedra[1];
           Constraint *c = new Constraint(a, b, op->constraint_strength_additive, false);
+          triangle->c = c;
           brittleObject->constraints.push_back(c);
         } else {
           wrong_triangles++;
