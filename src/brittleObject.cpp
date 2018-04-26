@@ -242,7 +242,7 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
   cout << "running solver\n";
   cg.compute(A);
   VectorXd x = cg.solve(B);
-  cout << "iterations" << cg.iterations() << endl;
+  cout << "iterations: " << cg.iterations() << endl;
   cout << "estimated error: " << cg.error() << endl;
   cout << x << "\n";
   cout << "finished solver\n";
