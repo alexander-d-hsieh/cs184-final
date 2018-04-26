@@ -318,7 +318,7 @@ void ShatterSimulator::drawPhong(GLShader &shader) {
 
   shader.setUniform("in_color", color);
   shader.setUniform("eye", Vector3f(cp.x, cp.y, cp.z));
-  shader.setUniform("light", Vector3f(3, 5, 2));
+  shader.setUniform("light", Vector3f(5, 5, 5));
 
   shader.uploadAttrib("in_position", positions);
   shader.uploadAttrib("in_normal", normals);
@@ -506,37 +506,20 @@ bool ShatterSimulator::resizeCallbackEvent(int width, int height) {
   return true;
 }
 
+int get_num_broken_constraints(vector<Constraint *> constraints) {
+  int total = 0;
+  for (Constraint *c : constraints) {
+    if (c->broken) {
+      total++;
+    }
+  }
+  return total;
+}
+
 void ShatterSimulator::initGUI(Screen *screen) {
   Window *window = new Window(screen, "Settings");
   window->setPosition(Vector2i(15, 15));
   window->setLayout(new GroupLayout(15, 6, 14, 5));
-
-  // Spring types
-
-  // new Label(window, "Spring types", "sans-bold");
-
-  // {
-  //   Button *b = new Button(window, "structural");
-  //   b->setFlags(Button::ToggleButton);
-  //   b->setPushed(cp->enable_structural_constraints);
-  //   b->setFontSize(14);
-  //   b->setChangeCallback(
-  //       [this](bool state) { cp->enable_structural_constraints = state; });
-
-  //   b = new Button(window, "shearing");
-  //   b->setFlags(Button::ToggleButton);
-  //   b->setPushed(cp->enable_shearing_constraints);
-  //   b->setFontSize(14);
-  //   b->setChangeCallback(
-  //       [this](bool state) { cp->enable_shearing_constraints = state; });
-
-  //   b = new Button(window, "bending");
-  //   b->setFlags(Button::ToggleButton);
-  //   b->setPushed(cp->enable_bending_constraints);
-  //   b->setFontSize(14);
-  //   b->setChangeCallback(
-  //       [this](bool state) { cp->enable_bending_constraints = state; });
-  // }
 
   // Simuation parameters
 
@@ -573,68 +556,6 @@ void ShatterSimulator::initGUI(Screen *screen) {
     fb->setMinValue(0);
     fb->setCallback([this](float value) { op->constraint_strength_additive = value; });
   }
-
-  // Simulation constants
-
-  // new Label(window, "Simulation", "sans-bold");
-
-  // {
-  //   Widget *panel = new Widget(window);
-  //   GridLayout *layout =
-  //       new GridLayout(Orientation::Horizontal, 2, Alignment::Middle, 5, 5);
-  //   layout->setColAlignment({Alignment::Maximum, Alignment::Fill});
-  //   layout->setSpacing(0, 10);
-  //   panel->setLayout(layout);
-
-  //   new Label(panel, "frames/s :", "sans-bold");
-
-  //   IntBox<int> *fsec = new IntBox<int>(panel);
-  //   fsec->setEditable(true);
-  //   fsec->setFixedSize(Vector2i(100, 20));
-  //   fsec->setFontSize(14);
-  //   fsec->setValue(frames_per_sec);
-  //   fsec->setSpinnable(true);
-  //   fsec->setCallback([this](int value) { frames_per_sec = value; });
-
-  //   new Label(panel, "steps/frame :", "sans-bold");
-
-  //   IntBox<int> *num_steps = new IntBox<int>(panel);
-  //   num_steps->setEditable(true);
-  //   num_steps->setFixedSize(Vector2i(100, 20));
-  //   num_steps->setFontSize(14);
-  //   num_steps->setValue(simulation_steps);
-  //   num_steps->setSpinnable(true);
-  //   num_steps->setMinValue(0);
-  //   num_steps->setCallback([this](int value) { simulation_steps = value; });
-  // }
-
-  // Damping slider and textbox
-
-  // new Label(window, "Damping", "sans-bold");
-
-  // {
-  //   Widget *panel = new Widget(window);
-  //   panel->setLayout(
-  //       new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 5));
-
-  //   Slider *slider = new Slider(panel);
-  //   slider->setValue(cp->damping);
-  //   slider->setFixedWidth(105);
-
-  //   TextBox *percentage = new TextBox(panel);
-  //   percentage->setFixedWidth(75);
-  //   percentage->setValue(to_string(cp->damping));
-  //   percentage->setUnits("%");
-  //   percentage->setFontSize(14);
-
-  //   slider->setCallback([percentage](float value) {
-  //     percentage->setValue(std::to_string(value));
-  //   });
-  //   slider->setFinalCallback([&](float value) {
-  //     cp->damping = (double)value;
-  //     // cout << "Final slider value: " << (int)(value * 100) << endl;
-  //   });
-  // }
 
   // Gravity
 
@@ -700,5 +621,54 @@ void ShatterSimulator::initGUI(Screen *screen) {
     ColorWheel *cw = new ColorWheel(window, color);
     cw->setCallback(
         [this](const nanogui::Color &color) { this->color = color; });
+  }
+
+  // Simulation statistics
+
+  new Label(window, "Simulation Stats", "sans-bold");
+
+  {
+    Widget *panel = new Widget(window);
+    GridLayout *layout =
+        new GridLayout(Orientation::Horizontal, 2, Alignment::Middle, 5, 5);
+    layout->setColAlignment({Alignment::Maximum, Alignment::Fill});
+    layout->setSpacing(0, 10);
+    panel->setLayout(layout);
+
+    new Label(panel, "tetrahedra :", "sans-bold");
+
+    IntBox<int> *num_tetrahedra = new IntBox<int>(panel);
+    num_tetrahedra->setEditable(false);
+    num_tetrahedra->setFixedSize(Vector2i(100, 20));
+    num_tetrahedra->setFontSize(14);
+    num_tetrahedra->setValue(brittle_object->tetrahedra.size());
+
+    new Label(panel, "total constraints :", "sans-bold");
+
+    IntBox<int> *num_total_constraints = new IntBox<int>(panel);
+    num_total_constraints->setEditable(false);
+    num_total_constraints->setFixedSize(Vector2i(100, 20));
+    num_total_constraints->setFontSize(14);
+    num_total_constraints->setValue(brittle_object->constraints.size());
+
+    int broken_constraints_size = 
+        get_num_broken_constraints(brittle_object->constraints);
+
+    new Label(panel, "satisfied constraints :", "sans-bold");
+
+    IntBox<int> *num_satisfied_constraints = new IntBox<int>(panel);
+    num_satisfied_constraints->setEditable(false);
+    num_satisfied_constraints->setFixedSize(Vector2i(100, 20));
+    num_satisfied_constraints->setFontSize(14);
+    num_satisfied_constraints->setValue(
+      brittle_object->constraints.size() - broken_constraints_size);
+
+    new Label(panel, "broken constraints :", "sans-bold");
+
+    IntBox<int> *num_broken_constraints = new IntBox<int>(panel);
+    num_broken_constraints->setEditable(false);
+    num_broken_constraints->setFixedSize(Vector2i(100, 20));
+    num_broken_constraints->setFontSize(14);
+    num_broken_constraints->setValue(broken_constraints_size);
   }
 }
