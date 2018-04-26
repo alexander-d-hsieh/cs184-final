@@ -226,7 +226,6 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
 
       while (node >> vertex_index >> x >> y >> z) {
         Vertex* v = new Vertex(x, y, z, vertex_index);
-        //TODO make vertices list
         vertices.push_back(v);
       }
 
@@ -335,7 +334,9 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         } else if (triangle->tetrahedra.size() == 2) {
           Tetrahedron *a = triangle->tetrahedra[0];
           Tetrahedron *b = triangle->tetrahedra[1];
-          Constraint *c = new Constraint(a, b, op->constraint_strength_additive, false);
+          double tri_area = (cross(triangle->v1->position - triangle->v2->position, triangle->v3->position - triangle->v2->position)).norm() / 2.0;
+          double tet_volume = a->volume + b->volume;
+          Constraint *c = new Constraint(a, b, op->constraint_strength_additive, true);
           triangle->c = c;
           brittleObject->constraints.push_back(c);
         } else {
