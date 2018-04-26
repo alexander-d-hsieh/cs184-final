@@ -167,7 +167,7 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
     Vector3D adjustment = Vector3D();
     if (collided_with_any_object(*collision_objects, tetrahedra, &adjustment)) {
       adjustToPlane(tetrahedra, adjustment);
-      // shatter((*collision_objects)[0], delta_t);
+      shatter((*collision_objects)[0], delta_t);
       shattered = true;
     }
   }
