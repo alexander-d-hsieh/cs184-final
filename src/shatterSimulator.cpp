@@ -276,9 +276,9 @@ void ShatterSimulator::drawWireframeCracks(GLShader &shader) {
     }
   }
 
+  drawWireframeTrianglesWithColor(cracked_triangles, color, shader);
   drawWireframeTrianglesWithColor(
       face_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
-  drawWireframeTrianglesWithColor(cracked_triangles, color, shader);
 }
 
 void ShatterSimulator::drawPhong(GLShader &shader) {
