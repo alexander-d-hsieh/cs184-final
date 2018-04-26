@@ -15,7 +15,6 @@ public:
 
   void render(GLShader &shader);
   bool collide(Tetrahedron *tet);
-
 private:
   Vector3D origin;
   double radius;

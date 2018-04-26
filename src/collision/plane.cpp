@@ -17,7 +17,18 @@ bool Plane::collide(Tetrahedron *tet) {
   double dot1 = dot(last_pos_dir, normal);
   double dot2 = dot(pos_dir, normal);
   bool intersects = (dot1 <= 0 && dot2 > 0) || (dot1 >= 0 && dot2 < 0) || (dot1 < 0 && dot2 >= 0) || (dot1 > 0 && dot2 <= 0);
+  // if (intersects) {
+  //   double t = dot(point - tet->position, normal) / dot(-normal, normal);
+  //   Vector3D tangent = tet->position + t * -normal;
+  //   Vector3D correction = tangent - tet->last_position + (SURFACE_OFFSET * normal);
+  //   tet->position = tet->last_position + correction * (1.0 - friction);
+  // }
   return intersects;
+}
+
+double Plane::impact_force(Tetrahedron *tet, double delta_t) {
+  // TODO (Part 3.2): Handle collisions with planes.
+  return dot(normal, tet->last_position - tet->position) * delta_t;
 }
 
 void Plane::render(GLShader &shader) {

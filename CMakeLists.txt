@@ -154,6 +154,7 @@ set(NANOGUI_USE_GLAD      ON  CACHE BOOL " " FORCE)
 # Add the configurations from nanogui
 add_subdirectory(ext/nanogui)
 include_directories(ext/nanogui/include)
+include_directories(ext/eigen)
 
 # For reliability of parallel build, make the NanoGUI targets dependencies
 set_property(TARGET glfw glfw_objects nanogui PROPERTY FOLDER "dependencies")

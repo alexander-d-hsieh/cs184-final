@@ -2,6 +2,10 @@
 #include <math.h>
 #include <random>
 #include <vector>
+#include <nanogui/nanogui.h>
+#include <Eigen/Sparse>
+#include <Eigen/IterativeLinearSolvers>
+
 
 #include "brittleObject.h"
 #include "collision/plane.h"
@@ -10,6 +14,10 @@
 #define DAMPING_FACTOR 0.002
 
 using namespace std;
+using namespace Eigen;
+
+typedef Eigen::SparseMatrix<double> SpMat;
+typedef Eigen::SparseVector<double> SpVec;
 
 Triangle::Triangle(Vertex *v1, Vertex *v2, Vertex *v3, bool face) {
   this->v1 = v1;
@@ -92,12 +100,10 @@ bool collided_with_any_object(
 
 // Verlet integration under effects of gravity
 void moveObject(
-    double frames_per_sec, 
-    double simulation_steps, 
+    double delta_t, 
     BrittleObjectParameters *op,
     vector<Vector3D> &external_accelerations,
     vector<Tetrahedron *> &tetrahedra) {
-  double delta_t = 1.0f / frames_per_sec / simulation_steps;
 
   Vector3D external_force = Vector3D();
   for (Vector3D &external_acc : external_accelerations) {
@@ -141,10 +147,11 @@ void moveObject(
 void BrittleObject::simulate(double frames_per_sec, double simulation_steps, BrittleObjectParameters *op,
                      vector<Vector3D> external_accelerations,
                      vector<CollisionObject *> *collision_objects) {
+  double delta_t = 1.0f / frames_per_sec / simulation_steps;
   if (!shattered) {
-    moveObject(frames_per_sec, simulation_steps, op, external_accelerations, tetrahedra);
+    moveObject(delta_t, op, external_accelerations, tetrahedra);
     if (collided_with_any_object(*collision_objects, tetrahedra)) {
-      shatter();
+      shatter((*collision_objects)[0], delta_t);
       shattered = true;
     }
   }
@@ -176,6 +183,52 @@ void BrittleObject::reset(double fall_height) {
   }
 }
 
-void BrittleObject::shatter() {
-  return;
+void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
+  cout << "shattering \n";
+
+  VectorXd Q(tetrahedra.size());
+  for (int i = 0; i < tetrahedra.size(); i++) {
+    Tetrahedron *tet = tetrahedra[i];
+    if (collision_object->collide(tet)) {
+      Vector3D tet_velocity = tet->last_position - tet->position;
+      double impact_force = collision_object->impact_force(tet, delta_t);
+      Q(i) = -impact_force;
+    }
+  }
+  cout << "built Q\n";
+  
+  SpMat J(constraints.size(), tetrahedra.size());
+  for (int i = 0; i < constraints.size(); i++) {
+    Constraint *c = constraints[i];
+    Tetrahedron *tet_a = c->tet_a;
+    Tetrahedron *tet_b = c->tet_b;
+    Vector3D d = tet_a->position - tet_b->position;
+    int ja = tet_a->id;
+    int jb = tet_b->id;
+
+    J.insert(i,ja) = (d.x + d.y + d.z) / d.norm();
+    J.insert(i,jb) = (d.x + d.y + d.z) / d.norm();
+  }
+  cout << "built J\n";
+
+  SpMat W(tetrahedra.size(), tetrahedra.size());
+  for (int j = 0; j < tetrahedra.size(); j++) {
+    Tetrahedron *tet = tetrahedra[j];
+    W.insert(j, j) = 1.0 / tet->mass;
+  }
+  cout << "built W\n";
+
+  SpMat A = J * W * J.transpose();
+  VectorXd B = -1.0f * J * W * Q;
+  ConjugateGradient<SpMat, Lower|Upper> cg;
+  cg.setMaxIterations(100);
+  cout << "running solver\n";
+  cg.compute(A);
+  VectorXd x = cg.solve(B);
+  cout << "iterations" << cg.iterations() << endl;
+  cout << "estimated error: " << cg.error() << endl;
+  cout << x << "\n";
+  cout << "finished solver\n";
+  
 }
+

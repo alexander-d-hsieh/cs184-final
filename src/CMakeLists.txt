@@ -43,6 +43,7 @@ include_directories(
   ${CGL_INCLUDE_DIRS}
   ${FREETYPE_INCLUDE_DIRS}
   ${NANOGUI_EXTRA_INCS}
+  ${EIGEN3_INCLUDE_DIR}
 )
 
 #-------------------------------------------------------------------------------

@@ -67,9 +67,17 @@ public:
   Constraint(Tetrahedron *a, Tetrahedron *b, double constraint_value, bool broken)
       : tet_a(a), tet_b(b), constraint_value(constraint_value), broken(broken) {}
 
+  Constraint(Tetrahedron *a, Tetrahedron *b)
+      : tet_a(a), tet_b(b) {
+    constraint_value = 0.0;
+  }
+
+  Constraint(Tetrahedron *a, Tetrahedron *b, double constraint_value)
+      : tet_a(a), tet_b(b), distance((a->position - b->position).norm()), constraint_value(constraint_value) {}
+
   double constraint_value;
   bool broken;
-
+  Vector3D distance;
   Tetrahedron *tet_a;
   Tetrahedron *tet_b;
 };
@@ -97,7 +105,8 @@ struct BrittleObject {
 
   void reset(double fall_height);
 
-  void shatter();
+  // void shatter();
+  void shatter(CollisionObject *collision_object, double delta_t);
 
   // Object components
   vector<Tetrahedron *> tetrahedra;
