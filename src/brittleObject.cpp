@@ -19,6 +19,8 @@ using namespace Eigen;
 typedef Eigen::SparseMatrix<double> SpMat;
 typedef Eigen::SparseVector<double> SpVec;
 
+const int NUM_SHATTER_STEPS = 50;
+
 Triangle::Triangle(Vertex *v1, Vertex *v2, Vertex *v3, bool face) {
   this->v1 = v1;
   this->v2 = v2;
@@ -201,51 +203,81 @@ void BrittleObject::reset(double fall_height) {
 
 void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
   cout << "shattering \n";
-
-  VectorXd Q(tetrahedra.size());
-  for (int i = 0; i < tetrahedra.size(); i++) {
-    Tetrahedron *tet = tetrahedra[i];
-    Vector3D adjustment = Vector3D();
-    if (collision_object->collide(tet, &adjustment)) {
-      Vector3D tet_velocity = tet->last_position - tet->position;
-      double impact_force = collision_object->impact_force(tet, delta_t);
-      Q(i) = -impact_force;
+//  for (int steps = 0; steps < NUM_SHATTER_STEPS; steps++) {
+    VectorXd Q(tetrahedra.size());
+    for (int i = 0; i < tetrahedra.size(); i++) {
+      Tetrahedron *tet = tetrahedra[i];
+      Vector3D adjustment = Vector3D();
+      if (collision_object->collide(tet, &adjustment)) {
+        Vector3D tet_velocity = tet->last_position - tet->position;
+        double impact_force = collision_object->impact_force(tet, delta_t);
+        Q(i) = -impact_force;
+      }
     }
-  }
-  cout << "built Q\n";
-  
-  SpMat J(constraints.size(), tetrahedra.size());
-  for (int i = 0; i < constraints.size(); i++) {
-    Constraint *c = constraints[i];
-    Tetrahedron *tet_a = c->tet_a;
-    Tetrahedron *tet_b = c->tet_b;
-    Vector3D d = tet_a->position - tet_b->position;
-    int ja = tet_a->id;
-    int jb = tet_b->id;
+    cout << "built Q\n";
 
-    J.insert(i,ja) = (d.x + d.y + d.z) / d.norm();
-    J.insert(i,jb) = (d.x + d.y + d.z) / d.norm();
-  }
-  cout << "built J\n";
+    SpMat J(constraints.size(), tetrahedra.size());
+    for (int i = 0; i < constraints.size(); i++) {
+      Constraint *c = constraints[i];
+      Tetrahedron *tet_a = c->tet_a;
+      Tetrahedron *tet_b = c->tet_b;
+      Vector3D d = tet_a->position - tet_b->position;
+      int ja = tet_a->id;
+      int jb = tet_b->id;
 
-  SpMat W(tetrahedra.size(), tetrahedra.size());
-  for (int j = 0; j < tetrahedra.size(); j++) {
-    Tetrahedron *tet = tetrahedra[j];
-    W.insert(j, j) = 1.0 / tet->mass;
-  }
-  cout << "built W\n";
+      J.insert(i, ja) = (d.x + d.y + d.z) / d.norm();
+      J.insert(i, jb) = (d.x + d.y + d.z) / d.norm();
+    }
+    cout << "built J\n";
 
-  SpMat A = J * W * J.transpose();
-  VectorXd B = -1.0f * J * W * Q;
-  ConjugateGradient<SpMat, Lower|Upper> cg;
-  cg.setMaxIterations(100);
-  cout << "running solver\n";
-  cg.compute(A);
-  VectorXd x = cg.solve(B);
-  cout << "iterations: " << cg.iterations() << endl;
-  cout << "estimated error: " << cg.error() << endl;
-  cout << x << "\n";
-  cout << "finished solver\n";
-  
+    SpMat W(tetrahedra.size(), tetrahedra.size());
+    for (int j = 0; j < tetrahedra.size(); j++) {
+      Tetrahedron *tet = tetrahedra[j];
+      W.insert(j, j) = 1.0 / tet->mass;
+    }
+    cout << "built W\n";
+
+    SpMat A = J * W * J.transpose();
+    VectorXd B = -1.0f * J * W * Q;
+    ConjugateGradient<SpMat, Lower | Upper> cg;
+    cg.setMaxIterations(100);
+    cout << "running solver\n";
+    cg.compute(A);
+    VectorXd x = cg.solve(B);
+    cout << "iterations: " << cg.iterations() << endl;
+    cout << "estimated error: " << cg.error() << endl;
+    cout << x << "\n";
+    cout << "finished solver\n";
+
+    // update constraints
+//    for (Constraint *c : constraints) {
+//      Tetrahedron *tet_a = c->tet_a;
+//      for (Triangle *t : tet_a->triangles) {
+//        // need to account for not adjusting yourself
+//        Constraint *constraint = t->c;
+//        if (constraint->broken) {
+//          Tetrahedron *tet_origin = t->tetrahedra[0] == tet_a ? t->tetrahedra[1] : t->tetrahedra[0];
+//          Tetrahedron *tet_other = constraint->tet_a == tet_origin ? constraint->tet_b : constraint->tet_a;
+//          Vector3D v1 = tet_a->position - tet_origin->position;
+//          Vector3D v2 = tet_other->position - tet_origin->position;
+//          double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
+//          c->constraint_value = c->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
+//        }
+//      }
+//      Tetrahedron *tet_b = c->tet_b;
+//      for (Triangle *t : tet_a->triangles) {
+//        // need to account for not adjusting yourself
+//        Constraint *constraint = t->c;
+//        if (constraint->broken) {
+//          Tetrahedron *tet_origin = t->tetrahedra[0] == tet_b ? t->tetrahedra[1] : t->tetrahedra[0];
+//          Tetrahedron *tet_other = constraint->tet_a == tet_origin ? constraint->tet_b : constraint->tet_a;
+//          Vector3D v1 = tet_b->position - tet_origin->position;
+//          Vector3D v2 = tet_other->position - tet_origin->position;
+//          double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
+//          c->constraint_value = c->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
+//        }
+//      }
+//    }
+//  }
 }
 
