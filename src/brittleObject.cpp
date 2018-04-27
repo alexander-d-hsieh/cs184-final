@@ -12,6 +12,7 @@
 #include "collision/sphere.h"
 
 #define DAMPING_FACTOR 0.002
+#define CG_ITERS 10
 
 using namespace std;
 using namespace Eigen;
@@ -166,9 +167,9 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
     moveObject(delta_t, op, external_accelerations, tetrahedra);
     Vector3D adjustment = Vector3D();
     if (collided_with_any_object(*collision_objects, tetrahedra, &adjustment)) {
-      adjustToPlane(tetrahedra, adjustment);
       shatter((*collision_objects)[0], delta_t);
       shattered = true;
+      adjustToPlane(tetrahedra, adjustment);
     }
   }
 }
@@ -201,51 +202,83 @@ void BrittleObject::reset(double fall_height) {
 
 void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
   cout << "shattering \n";
-
-  VectorXd Q(tetrahedra.size());
+  VectorXd Q(3* tetrahedra.size());
   for (int i = 0; i < tetrahedra.size(); i++) {
     Tetrahedron *tet = tetrahedra[i];
     Vector3D adjustment = Vector3D();
     if (collision_object->collide(tet, &adjustment)) {
-      Vector3D tet_velocity = tet->last_position - tet->position;
-      double impact_force = collision_object->impact_force(tet, delta_t);
-      Q(i) = -impact_force;
+      Vector3D impact_force = collision_object->impact_force(tet, delta_t);
+      Q(3*i) = impact_force.x;
+      Q(3*i+1) = impact_force.y;
+      Q(3*i+2) = impact_force.z;
     }
   }
   cout << "built Q\n";
+  // cout << Q;
   
-  SpMat J(constraints.size(), tetrahedra.size());
+  SpMat J(constraints.size(), 3*tetrahedra.size());
+  J.setZero();
   for (int i = 0; i < constraints.size(); i++) {
     Constraint *c = constraints[i];
     Tetrahedron *tet_a = c->tet_a;
     Tetrahedron *tet_b = c->tet_b;
-    Vector3D d = tet_a->position - tet_b->position;
     int ja = tet_a->id;
     int jb = tet_b->id;
+    double dist = (tet_a->position - tet_b->position).norm();
+    J.insert(i,3*ja) = tet_a->position.x / dist;
+    J.insert(i,3*ja+1) = tet_a->position.y / dist;
+    J.insert(i,3*ja+2) = tet_a->position.z / dist;
 
-    J.insert(i,ja) = (d.x + d.y + d.z) / d.norm();
-    J.insert(i,jb) = (d.x + d.y + d.z) / d.norm();
+    J.insert(i,3*jb) = -tet_b->position.x / dist;
+    J.insert(i,3*jb+1) = -tet_b->position.y / dist;
+    J.insert(i,3*jb+2) = -tet_b->position.z / dist;
   }
   cout << "built J\n";
 
-  SpMat W(tetrahedra.size(), tetrahedra.size());
+  SpMat W(3*tetrahedra.size(), 3*tetrahedra.size());
+  W.setZero();
   for (int j = 0; j < tetrahedra.size(); j++) {
     Tetrahedron *tet = tetrahedra[j];
-    W.insert(j, j) = 1.0 / tet->mass;
+    W.insert(3*j, 3*j) = 1.0 / tet->mass;
+    W.insert(3*j+1, 3*j+1) = 1.0 / tet->mass;
+    W.insert(3*j+2, 3*j+2) = 1.0 / tet->mass;
   }
   cout << "built W\n";
-
   SpMat A = J * W * J.transpose();
-  VectorXd B = -1.0f * J * W * Q;
   ConjugateGradient<SpMat, Lower|Upper> cg;
-  cg.setMaxIterations(100);
-  cout << "running solver\n";
   cg.compute(A);
-  VectorXd x = cg.solve(B);
-  cout << "iterations: " << cg.iterations() << endl;
-  cout << "estimated error: " << cg.error() << endl;
-  cout << x << "\n";
-  cout << "finished solver\n";
-  
+  cg.setTolerance(0.00001);
+  cg.setMaxIterations(1000);
+
+  for (int i = 0; i < CG_ITERS; i++) {
+    VectorXd Q_iter = VectorXd(Q);
+    if (i < 0.8 * CG_ITERS) {
+      Q_iter = (double) i / 0.8 * CG_ITERS * Q_iter;
+    }
+    else {
+      Q_iter = (double) (CG_ITERS - i) / 1.0 * CG_ITERS * Q_iter;
+    }
+    VectorXd B = -1.0f * J * W * Q_iter;
+    // cg.setMaxIterations(500);
+    cout << "running solver\n";
+    VectorXd x = cg.solve(B);
+    for (int i = 0; i < constraints.size(); i++) {
+      Constraint *c = constraints[i];
+      Tetrahedron *tet_a = c->tet_a;
+      Tetrahedron *tet_b = c->tet_b;
+      int ja = tet_a->id;
+      int jb = tet_b->id;
+      double fx = Q.coeff(3*ja) + Q.coeff(3*ja);
+      double fy = Q.coeff(3*ja+1) + Q.coeff(3*ja+1);
+      double fz = Q.coeff(3*ja+2) + Q.coeff(3*ja+2);
+      Vector3D total_force(fx,fy,fz);
+      Vector3D constraint_dir = (tet_a->position - tet_b->position).unit();
+      double magnitude = dot(total_force, constraint_dir);
+      if (magnitude > c->constraint_value) {
+        c->broken = true;
+        //TODO: Loop through neighbors and decrement their strengths for next iteration
+      }
+    } 
+  }
 }
 
