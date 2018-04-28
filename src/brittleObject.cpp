@@ -257,9 +257,10 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
   for (int i = 0; i < CG_ITERS; i++) {
     VectorXd Q_iter = VectorXd(Q);
     if (i < 0.8 * CG_ITERS) {
-      Q_iter = (double) i / 0.8 * CG_ITERS * Q_iter;
-    } else {
-      Q_iter = (double) (CG_ITERS - i) / 1.0 * CG_ITERS * Q_iter;
+      Q_iter = ((double) i / (0.8 * CG_ITERS)) * Q;
+    }
+    else {
+      Q_iter = ((double) (CG_ITERS - i) / (1.0 * CG_ITERS)) * Q;
     }
     VectorXd B = -1.0f * J * W * Q_iter;
     // cg.setMaxIterations(500);
@@ -309,6 +310,8 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
         }
       }
     }
+    VectorXd Q_hat = J.transpose() * x;
+    Q = Q + Q_hat;
   }
 }
 
