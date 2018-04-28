@@ -17,7 +17,7 @@ public:
 
   void render(GLShader &shader);
   bool collide(Tetrahedron *tet, Vector3D *adjustment);
-  double impact_force(Tetrahedron *tet, double delta_t);
+  Vector3D impact_force(Tetrahedron *tet, double delta_t);
 
   Vector3D point;
   Vector3D normal;
