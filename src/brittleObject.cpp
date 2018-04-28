@@ -285,33 +285,54 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
 
     for (Constraint *c : constraints) {
       if (c->broken) {
-        continue;
-      }
-      Tetrahedron *tet_a = c->tet_a;
-      for (Triangle *t : tet_a->triangles) {
-        Constraint *constraint = t->c;
-        if (constraint != NULL && c != constraint && constraint->broken) {
-          Tetrahedron *tet_origin = t->tetrahedra[0] == tet_a ? t->tetrahedra[1] : t->tetrahedra[0];
-          Tetrahedron *tet_other = constraint->tet_a == tet_origin ? constraint->tet_b : constraint->tet_a;
-          Vector3D v1 = tet_a->position - tet_origin->position;
-          Vector3D v2 = tet_other->position - tet_origin->position;
-          double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
-          c->constraint_value = c->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
+        Tetrahedron *tet_a = c->tet_a;
+        Tetrahedron *tet_b = c->tet_b;
+        for (Triangle *t : tet_a->triangles) {
+          Constraint *constraint = t->c;
+          if (constraint != NULL && c != constraint && !constraint->broken) {
+            Tetrahedron *tet = t->tetrahedra[0] == tet_a ? t->tetrahedra[1] : t->tetrahedra[0];
+            Vector3D v1 = tet_b->position - tet_a->position;
+            Vector3D v2 = tet->position - tet_a->position;
+            double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
+            constraint->constraint_value = constraint->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
+          }
+        }
+        for (Triangle *t : tet_b->triangles) {
+          Constraint *constraint = t->c;
+          if (constraint != NULL && c != constraint && !constraint->broken) {
+            Tetrahedron *tet = t->tetrahedra[0] == tet_b ? t->tetrahedra[1] : t->tetrahedra[0];
+            Vector3D v1 = tet_a->position - tet_b->position;
+            Vector3D v2 = tet->position - tet_b->position;
+            double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
+            constraint->constraint_value = constraint->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
+          }
         }
       }
-      Tetrahedron *tet_b = c->tet_b;
-      for (Triangle *t : tet_b->triangles) {
-        Constraint *constraint = t->c;
-        if (constraint != NULL && c != constraint && constraint->broken) {
-          Tetrahedron *tet_origin = t->tetrahedra[0] == tet_b ? t->tetrahedra[1] : t->tetrahedra[0];
-          Tetrahedron *tet_other = constraint->tet_a == tet_origin ? constraint->tet_b : constraint->tet_a;
-          Vector3D v1 = tet_b->position - tet_origin->position;
-          Vector3D v2 = tet_other->position - tet_origin->position;
-          double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
-          c->constraint_value = c->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
-        }
-      }
-    }
+//      Tetrahedron *tet_a = c->tet_a;
+//      for (Triangle *t : tet_a->triangles) {
+//        Constraint *constraint = t->c;
+//        if (constraint != NULL && c != constraint && constraint->broken) {
+//          Tetrahedron *tet_origin = t->tetrahedra[0] == tet_a ? t->tetrahedra[1] : t->tetrahedra[0];
+//          Tetrahedron *tet_other = constraint->tet_a == tet_origin ? constraint->tet_b : constraint->tet_a;
+//          Vector3D v1 = tet_a->position - tet_origin->position;
+//          Vector3D v2 = tet_other->position - tet_origin->position;
+//          double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
+//          c->constraint_value = c->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
+//        }
+//      }
+//      Tetrahedron *tet_b = c->tet_b;
+//      for (Triangle *t : tet_b->triangles) {
+//        Constraint *constraint = t->c;
+//        if (constraint != NULL && c != constraint && constraint->broken) {
+//          Tetrahedron *tet_origin = t->tetrahedra[0] == tet_b ? t->tetrahedra[1] : t->tetrahedra[0];
+//          Tetrahedron *tet_other = constraint->tet_a == tet_origin ? constraint->tet_b : constraint->tet_a;
+//          Vector3D v1 = tet_b->position - tet_origin->position;
+//          Vector3D v2 = tet_other->position - tet_origin->position;
+//          double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
+//          c->constraint_value = c->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
+//        }
+//      }
+//    }
   }
 }
 
