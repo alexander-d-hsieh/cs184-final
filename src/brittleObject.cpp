@@ -284,6 +284,9 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
     }
 
     for (Constraint *c : constraints) {
+      if (c->broken) {
+        continue;
+      }
       Tetrahedron *tet_a = c->tet_a;
       for (Triangle *t : tet_a->triangles) {
         Constraint *constraint = t->c;
