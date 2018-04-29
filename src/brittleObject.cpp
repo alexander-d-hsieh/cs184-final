@@ -6,7 +6,6 @@
 #include <Eigen/Sparse>
 #include <Eigen/IterativeLinearSolvers>
 
-
 #include "brittleObject.h"
 #include "collision/plane.h"
 #include "collision/sphere.h"
@@ -86,6 +85,30 @@ BrittleObject::BrittleObject() {
 BrittleObject::~BrittleObject() {
   tetrahedra.clear();
   constraints.clear();
+}
+
+// Returns matrix for rotation around x-axis
+Matrix3x3 rotate_x_axis(float deg) {
+  // Part 3: Fill this in.
+  return Matrix3x3({1.0, 0.0, 0.0,
+                   0.0, cos(deg * PI / 180), -1 * sin(deg * PI / 180),
+                   0.0, sin(deg * PI / 180), cos(deg * PI / 180)});
+}
+
+// Returns matrix for rotation around y-axis
+Matrix3x3 rotate_y_axis(float deg) {
+  // Part 3: Fill this in.
+  return Matrix3x3({cos(deg * PI / 180), 0.0, sin(deg * PI / 180),
+                   0.0, 1.0, 0.0,
+                   -1 * sin(deg * PI / 180), 0.0, cos(deg * PI / 180)});
+}
+
+// Returns matrix for rotation around z-axis
+Matrix3x3 rotate_z_axis(float deg) {
+  // Part 3: Fill this in.
+  return Matrix3x3({cos(deg * PI / 180.0), -1.0 * sin(deg * PI / 180.0), 0.0,
+                   sin(deg * PI / 180.0), cos(deg * PI / 180.0), 0.0,
+                   0.0, 0.0, 1.0});
 }
 
 // Returns whether the BrittleObject has collided with any of the collision objects
@@ -176,21 +199,24 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
   }
 }
 
-void BrittleObject::reset(double fall_height) {
-
-  Vector3D height_additive (0., fall_height, 0.);
+void BrittleObject::reset(BrittleObjectParameters *op) {
+  Matrix3x3 x_rotate = rotate_x_axis(op->rotation.x);
+  Matrix3x3 y_rotate = rotate_y_axis(op->rotation.y);
+  Matrix3x3 z_rotate = rotate_z_axis(op->rotation.z);
+  Matrix3x3 rotation = x_rotate * y_rotate * z_rotate;
+  Vector3D height_additive (0., op->fall_height, 0.);
   for (Tetrahedron *tet : tetrahedra) {
     for (Vertex *v : tet->vertices) {
       v->updated = false;
     }
   }
   for (Tetrahedron *tet : tetrahedra) {
-    tet->position = tet->start_position + height_additive;
-    tet->last_position = tet->start_position + height_additive;
+    tet->position = (rotation * tet->start_position) + height_additive;
+    tet->last_position = (rotation * tet->start_position) + height_additive;
     for (Vertex *v : tet->vertices) {
       if (!v->updated) {
-        v->position = v->start_position + height_additive;
-        v->last_position = v->start_position + height_additive;
+        v->position = (rotation * v->start_position) + height_additive;
+        v->last_position = (rotation * v->start_position) + height_additive;
         v->updated = true;
       }
     }

@@ -68,7 +68,7 @@ void ShatterSimulator::init() {
   camera_info.nClip = 0.01;
   camera_info.fClip = 10000;
 
-  brittle_object->reset(op->fall_height);
+  brittle_object->reset(op);
   // for (Tetrahedron *tetra : brittle_object->tetrahedra) {
   //   for (int ti = 0; ti < 4; ti++) {
   //     Triangle *tri = tetra->triangles[ti];
@@ -474,7 +474,7 @@ bool ShatterSimulator::keyCallbackEvent(int key, int scancode, int action,
       break;
     case 'r':
     case 'R':
-      brittle_object->reset(op->fall_height);
+      brittle_object->reset(op);
       break;
     case ' ':
       resetCamera();

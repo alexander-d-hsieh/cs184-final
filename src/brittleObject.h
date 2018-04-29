@@ -8,6 +8,7 @@
 #include "CGL/CGL.h"
 #include "CGL/misc.h"
 #include "CGL/vector3D.h"
+#include "CGL/matrix3x3.h"
 #include "collision/collisionObject.h"
 
 using namespace CGL;
@@ -84,15 +85,17 @@ public:
 
 struct BrittleObjectParameters {
   BrittleObjectParameters() {}
-  BrittleObjectParameters(double fall_height, double constraint_strength_additive, double density)
+  BrittleObjectParameters(double fall_height, double constraint_strength_additive, double density, Vector3D rotation)
       : fall_height(fall_height), 
         constraint_strength_additive(constraint_strength_additive),
-        density(density) {}
+        density(density),
+        rotation(rotation) {}
   ~BrittleObjectParameters() {}
 
   double fall_height;
   double constraint_strength_additive;
   double density;
+  Vector3D rotation;
 };
 
 struct BrittleObject {
@@ -103,7 +106,7 @@ struct BrittleObject {
                 vector<Vector3D> external_accelerations,
                 vector<CollisionObject *> *collision_objects);
 
-  void reset(double fall_height);
+  void reset(BrittleObjectParameters *op);
 
   // void shatter();
   void shatter(CollisionObject *collision_object, double delta_t);

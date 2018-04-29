@@ -32,6 +32,15 @@ class Matrix3x3 {
     }
   }
 
+  Matrix3x3(double m00, double m01, double m02,
+            double m10, double m11, double m12,
+            double m20, double m21, double m22)
+  {
+    (*this)(0,0) = m00; (*this)(0,1) = m01; (*this)(0,2) = m02;
+    (*this)(1,0) = m10; (*this)(1,1) = m11; (*this)(1,2) = m12;
+    (*this)(2,0) = m20; (*this)(2,1) = m21; (*this)(2,2) = m22;
+  }
+
   /**
    * Sets all elements to val.
    */

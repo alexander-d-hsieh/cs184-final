@@ -31,7 +31,7 @@ Vector3D Plane::impact_force(Tetrahedron *tet, double delta_t) {
   // TODO (Part 3.2): Handle collisions with planes.
   Vector3D velocity = (tet->last_position - tet->position);
   double velocity_magnitude = dot(normal, velocity);
-  return -0.5 * normal * velocity_magnitude * tet->mass;
+  return -0.5 * normal * velocity_magnitude * tet->mass / delta_t;
 }
 
 void Plane::render(GLShader &shader) {

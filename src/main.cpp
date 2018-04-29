@@ -202,10 +202,19 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
 
       auto it_density_param =
           object.find("density");
-      if (it_constraint_strength_additive_param != object.end()) {
+      if (it_density_param != object.end()) {
         op->density = *it_density_param;
       } else {
         incompleteObjectError("object", "density");
+      }
+
+      auto it_rotation_param =
+          object.find("rotation");
+      if (it_rotation_param != object.end()) {
+        vector<double> rotation = *it_rotation_param;
+        op->rotation = Vector3D(rotation[0], rotation[1], rotation[2]);
+      } else {
+        incompleteObjectError("object", "rotation");
       }
 
       ifstream node(node_file);
