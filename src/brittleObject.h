@@ -4,6 +4,9 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
+#include <nanogui/nanogui.h>  
+#include <Eigen/Sparse>
+#include <Eigen/IterativeLinearSolvers>
 
 #include "CGL/CGL.h"
 #include "CGL/misc.h"
@@ -11,6 +14,9 @@
 #include "CGL/matrix3x3.h"
 #include "collision/collisionObject.h"
 
+typedef Eigen::SparseMatrix<double> SpMat;
+
+using namespace Eigen;
 using namespace CGL;
 using namespace std;
 
@@ -66,17 +72,21 @@ public:
 class Constraint {
 public:  
   Constraint(Tetrahedron *a, Tetrahedron *b, double constraint_value, bool broken)
-      : tet_a(a), tet_b(b), constraint_value(constraint_value), broken(broken) {}
+      : tet_a(a), tet_b(b), constraint_value(constraint_value), start_constraint_value(constraint_value), 
+        broken(broken) {}
 
   Constraint(Tetrahedron *a, Tetrahedron *b)
       : tet_a(a), tet_b(b) {
     constraint_value = 0.0;
+    start_constraint_value = 0.0;
   }
 
   Constraint(Tetrahedron *a, Tetrahedron *b, double constraint_value)
-      : tet_a(a), tet_b(b), distance((a->position - b->position).norm()), constraint_value(constraint_value) {}
+      : tet_a(a), tet_b(b), distance((a->position - b->position).norm()), 
+        constraint_value(constraint_value), start_constraint_value(constraint_value) {}
 
   double constraint_value;
+  double start_constraint_value;
   bool broken;
   Vector3D distance;
   Tetrahedron *tet_a;
@@ -110,12 +120,17 @@ struct BrittleObject {
 
   // void shatter();
   void shatter(CollisionObject *collision_object, double delta_t);
+  void build_shatter_matrices(CollisionObject *collision_object, double delta_t);
 
   // Object components
   vector<Tetrahedron *> tetrahedra;
   vector<Constraint *> constraints;
   Vector3D start_position, position, last_position;
   bool shattered;
+  VectorXd Q, Q_hat;
+  SpMat J, W;
+  int shatter_iter;
+
 };
 
 #endif /* CLOTH_H */

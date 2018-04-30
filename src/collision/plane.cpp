@@ -24,7 +24,7 @@ bool Plane::collide(Tetrahedron *tet, Vector3D *adjustment) {
     *adjustment = correction;
     // tet->position = tet->last_position + correction * (1.0 - friction);
   }
-  return intersects;
+  return dot1 <= 0;
 }
 
 Vector3D Plane::impact_force(Tetrahedron *tet, double delta_t) {
