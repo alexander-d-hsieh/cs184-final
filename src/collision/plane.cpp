@@ -22,7 +22,14 @@ bool Plane::collide(Tetrahedron *tet, Vector3D *adjustment) {
     Vector3D tangent = tet->position + t * -normal;
     Vector3D correction = tangent - tet->last_position + (SURFACE_OFFSET * normal);
     *adjustment = correction;
-    // tet->position = tet->last_position + correction * (1.0 - friction);
+  }
+  return intersects;
+}
+
+bool Plane::collide(Vector3D lowest_point, Vector3D *adjustment) {
+  bool intersects = (lowest_point.y <= point.y);
+  if (intersects) {
+    *adjustment = Vector3D(0, point.y - lowest_point.y, 0);
   }
   return intersects;
 }
