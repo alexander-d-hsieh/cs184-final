@@ -136,4 +136,8 @@ struct BrittleObject {
 
 };
 
+Matrix3x3 rotate_x_axis(float deg);
+Matrix3x3 rotate_y_axis(float deg);
+Matrix3x3 rotate_z_axis(float deg);
+
 #endif /* CLOTH_H */

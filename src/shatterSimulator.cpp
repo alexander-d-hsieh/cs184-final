@@ -563,6 +563,52 @@ void ShatterSimulator::initGUI(Screen *screen) {
     fb->setSpinnable(true);
     fb->setMinValue(0);
     fb->setCallback([this](float value) { op->constraint_strength_additive = value; });
+
+    new Label(panel, "rotation about x-axis :", "sans-bold");
+
+    fb = new FloatBox<double>(panel);
+    fb->setEditable(true);
+    fb->setFixedSize(Vector2i(100, 20));
+    fb->setFontSize(14);
+    fb->setValue(op->rotation.x);
+    fb->setUnits("deg");
+    fb->setSpinnable(true);
+    fb->setMinValue(0);
+    fb->setCallback([this](float value) {
+      op->rotation.x = value;
+      brittle_object->reset(op);
+    });
+
+    new Label(panel, "rotation about y-axis :", "sans-bold");
+
+    fb = new FloatBox<double>(panel);
+    fb->setEditable(true);
+    fb->setFixedSize(Vector2i(100, 20));
+    fb->setFontSize(14);
+    fb->setValue(op->rotation.y);
+    fb->setUnits("deg");
+    fb->setSpinnable(true);
+    fb->setMinValue(0);
+    fb->setCallback([this](float value) {
+      op->rotation.y = value;
+      brittle_object->reset(op);
+    });
+
+    new Label(panel, "rotation about z-axis :", "sans-bold");
+
+    fb = new FloatBox<double>(panel);
+    fb->setEditable(true);
+    fb->setFixedSize(Vector2i(100, 20));
+    fb->setFontSize(14);
+    fb->setValue(op->rotation.z);
+    fb->setUnits("deg");
+    fb->setSpinnable(true);
+    fb->setMinValue(0);
+    fb->setCallback([this](float value) {
+      op->rotation.z = value;
+      brittle_object->reset(op);
+    });
+
   }
 
   // Gravity
