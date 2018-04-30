@@ -216,7 +216,7 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
   if (!shattered) {
     Vector3D lowest_point = moveObject(delta_t, op, external_accelerations, tetrahedra);
     Vector3D adjustment = Vector3D();
-    if (collided_with_any_object(*collision_objects, tetrahedra, &adjustment)) {
+    if (collided_with_any_object(*collision_objects, lowest_point, &adjustment)) {
       build_shatter_matrices((*collision_objects)[0], delta_t);
       shattered = true;
       adjustToPlane(tetrahedra, adjustment);
@@ -253,7 +253,8 @@ void BrittleObject::reset(BrittleObjectParameters *op) {
   shattered = false;
   shatter_iter = 0;
   for (Constraint *c : constraints) {
-    c->constraint_value = c->start_constraint_value + op->constraint_strength_additive;
+    c->start_constraint_value = c->volume_constraint + op->constraint_strength_additive;
+    c->constraint_value = c->start_constraint_value;
     c->broken = false;
   }
 }
@@ -272,10 +273,11 @@ void BrittleObject::build_shatter_matrices(CollisionObject *collision_object, do
     Vector3D adjustment = Vector3D();
     if (collision_object->collide(tet, &adjustment)) {
       Vector3D impact_force = collision_object->impact_force(tet, delta_t);
-      Q(3 * id) = impact_force.x;
-      Q(3 * id + 1) = impact_force.y;
-      Q(3 * id + 2) = impact_force.z;
+      Q(3 * id) += impact_force.x;
+      Q(3 * id + 1) += impact_force.y;
+      Q(3 * id + 2) += impact_force.z;
     }
+
   }
   cout << "built Q\n";
   // cout << Q;
@@ -286,19 +288,16 @@ void BrittleObject::build_shatter_matrices(CollisionObject *collision_object, do
     Constraint *c = constraints[i];
     Tetrahedron *tet_a = c->tet_a;
     Tetrahedron *tet_b = c->tet_b;
-    Vector3D adjustment = Vector3D();
-    // if (collision_object->collide(tet_a, &adjustment) || collision_object->collide(tet_b, &adjustment)) {
-      int ja = tet_a->id;
-      int jb = tet_b->id;
-      double dist = 0.5 * (tet_a->position - tet_b->position).norm();
-      J.insert(i, 3 * ja) = (tet_a->position.x - tet_b->position.x) / dist;
-      J.insert(i, 3 * ja + 1) = (tet_a->position.y - tet_b->position.y) / dist;
-      J.insert(i, 3 * ja + 2) = (tet_a->position.z - tet_b->position.z) / dist;
+    int ja = tet_a->id;
+    int jb = tet_b->id;
+    double dist = 0.5 * (tet_a->position - tet_b->position).norm();
+    J.insert(i, 3 * ja) = (tet_a->position.x - tet_b->position.x) / dist;
+    J.insert(i, 3 * ja + 1) = (tet_a->position.y - tet_b->position.y) / dist;
+    J.insert(i, 3 * ja + 2) = (tet_a->position.z - tet_b->position.z) / dist;
 
-      J.insert(i, 3 * jb) = (tet_b->position.x - tet_a->position.x) / dist;
-      J.insert(i, 3 * jb + 1) = (tet_b->position.y - tet_a->position.y) / dist;
-      J.insert(i, 3 * jb + 2) = (tet_b->position.z - tet_a->position.z) / dist;
-    // }
+    J.insert(i, 3 * jb) = (tet_b->position.x - tet_a->position.x) / dist;
+    J.insert(i, 3 * jb + 1) = (tet_b->position.y - tet_a->position.y) / dist;
+    J.insert(i, 3 * jb + 2) = (tet_b->position.z - tet_a->position.z) / dist;
 
   }
   cout << "built J\n";
@@ -327,15 +326,16 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
     A = J * W * J.transpose();
     cg.compute(A);
     VectorXd Q_iter = VectorXd(3 * tetrahedra.size());
-    if (i < 0.6 * CG_ITERS) {
-      Q_iter = ((double) i / (0.6 * CG_ITERS)) * Q;
-      cout << "Q strength: " << ((double) i / (0.6 * CG_ITERS)) << endl;
+    if (i < 0.8 * CG_ITERS) {
+      Q_iter = ((double) i / (0.8 * CG_ITERS)) * Q;
+      cout << "Q strength: " << ((double) i / (0.8 * CG_ITERS)) << endl;
     }
     else {
-      Q_iter = ((double) (CG_ITERS - i) / (1.0 * CG_ITERS)) * Q;
-      cout << "Q strength: " << ((double) (CG_ITERS - i) / (0.6 * CG_ITERS)) << endl;
+      Q_iter = ((double) (CG_ITERS - i) / (0.2 * CG_ITERS)) * Q;
+      cout << "Q strength: " << ((double) (CG_ITERS - i) / (0.2 * CG_ITERS)) << endl;
     }
-    Q_iter -= Q_hat;
+    Q_iter += Q_hat;
+    Q += Q_hat;
     VectorXd B = -1.0 * J * W * Q_iter;
     cout << "running solver\n";
     VectorXd x = cg.solve(B);
@@ -358,26 +358,23 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
       fz = Q_hat.coeff(3 * jb + 2);
       
       Vector3D force_b(fx, fy, fz);
-      Vector3D a_to_b = (tet_a->position - tet_b->position).unit();
-      Vector3D b_to_a = -a_to_b;
+      Vector3D b_to_a = (tet_a->position - tet_b->position).unit();
+      Vector3D a_to_b = -b_to_a;
       double magnitude_a = dot(force_a, a_to_b);
       double magnitude_b = dot(force_b, b_to_a);
-      if ((magnitude_a > 0 && magnitude_a > c->constraint_value) || 
-          (magnitude_a < 0 && magnitude_a < -8.0 *  c->constraint_value)) { //Extension force
+      if (magnitude_a + magnitude_b > c->constraint_value) {
         c->broken = true;
         broken_constraints.push_back(c);
         broken_this_iter++;
       }
-      else if ((magnitude_b > 0 && magnitude_b > c->constraint_value) || 
-          (magnitude_b < 0 && magnitude_b < -8.0 *  c->constraint_value)) {
-        // if (magnitude_a + magnitude_b < -8.0*c->constraint_value) {
-          c->broken = true;
-          broken_constraints.push_back(c);
-          broken_this_iter++;
-        // }
+      else if (magnitude_a + magnitude_b < -8.0*c->constraint_value) {
+        c->broken = true;
+        broken_constraints.push_back(c);
+        broken_this_iter++;
       }
+
     }
-    
+    int weakened = 0;
     for (int k = 0; k < broken_constraints.size(); k++) {
       Constraint *c = broken_constraints[k];
       Tetrahedron *tet_a = c->tet_a;
@@ -390,10 +387,11 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
           Vector3D v1 = tet_b->position - tet_a->position;
           Vector3D v2 = tet->position - tet_a->position;
           double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
-          if (theta < PI / 2.0 && theta > PI / 2.0) {
-          constraint->constraint_value = constraint->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
+          if (theta < PI / 2.0 && theta > -PI / 2.0) {
+            constraint->constraint_value = min(constraint->constraint_value, 
+                                            constraint->start_constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0)))));
+            weakened++;
           }
-          // cout << "constraint weakened by: " << (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0)))) << endl;
         }
       }
       for (Triangle *t : tet_b->triangles) {
@@ -403,19 +401,26 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
           Vector3D v1 = tet_a->position - tet_b->position;
           Vector3D v2 = tet->position - tet_b->position;
           double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
-          if (theta < PI / 2.0 && theta > PI / 2.0) {
-          constraint->constraint_value = constraint->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
+          if (theta < PI / 2.0 && theta > -PI / 2.0) {
+            constraint->constraint_value = min(constraint->constraint_value, 
+                                            constraint->start_constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0)))));
+            weakened++;
           }
           // constraint->constraint_value = constraint->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
         }
       }
+      int ja = tet_a->id;
+      int jb = tet_b->id;
+      J.coeffRef(i, 3 * ja) = 0.0;
+      J.coeffRef(i, 3 * ja + 1) = 0.0;
+      J.coeffRef(i, 3 * ja + 2) = 0.0;
+      J.coeffRef(i, 3 * jb) = 0.0;
+      J.coeffRef(i, 3 * jb + 1) = 0.0;
+      J.coeffRef(i, 3 * jb + 2) = 0.0;
     }
-    num_broken_constraints.push_back(broken_this_iter);
-    
-  // }
-  for (int b : num_broken_constraints) {
-    cout << b << endl;
-  }
+
+    cout << "broken " << broken_this_iter << endl;
+    cout << "weakened " << weakened << endl;
   
 }
 

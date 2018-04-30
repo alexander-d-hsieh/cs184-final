@@ -345,8 +345,8 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
           double tri_area = (cross(triangle->v1->position - triangle->v2->position,
                                    triangle->v3->position - triangle->v2->position)).norm() / 2.0;
           double tet_volume = a->volume + b->volume;
-          double constraint_value = 0.0005*(tri_area + 0.5 * tet_volume);
-          Constraint *c = new Constraint(a, b, op->constraint_strength_additive + constraint_value, false);
+          double constraint_value = 0.005*(tri_area + 0.5 * tet_volume);
+          Constraint *c = new Constraint(a, b, constraint_value, false);
           triangle->c = c;
           brittleObject->constraints.push_back(c);
         } else {

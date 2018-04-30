@@ -31,14 +31,14 @@ bool Plane::collide(Vector3D lowest_point, Vector3D *adjustment) {
   if (intersects) {
     *adjustment = Vector3D(0, point.y - lowest_point.y, 0);
   }
-  return dot1 <= 0;
+  return intersects;
 }
 
 Vector3D Plane::impact_force(Tetrahedron *tet, double delta_t) {
   // TODO (Part 3.2): Handle collisions with planes.
-  Vector3D velocity = (tet->last_position - tet->position);
+  Vector3D velocity = (tet->last_position - tet->position) / delta_t;
   double velocity_magnitude = dot(normal, velocity);
-  return -0.5 * normal * velocity_magnitude * tet->mass / delta_t;
+  return 0.5 * normal * velocity_magnitude * tet->mass;
 }
 
 void Plane::render(GLShader &shader) {

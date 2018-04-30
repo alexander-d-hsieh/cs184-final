@@ -73,20 +73,23 @@ class Constraint {
 public:  
   Constraint(Tetrahedron *a, Tetrahedron *b, double constraint_value, bool broken)
       : tet_a(a), tet_b(b), constraint_value(constraint_value), start_constraint_value(constraint_value), 
-        broken(broken) {}
+        volume_constraint(constraint_value), broken(broken) {}
 
   Constraint(Tetrahedron *a, Tetrahedron *b)
       : tet_a(a), tet_b(b) {
     constraint_value = 0.0;
     start_constraint_value = 0.0;
+    volume_constraint = 0.0;
   }
 
   Constraint(Tetrahedron *a, Tetrahedron *b, double constraint_value)
       : tet_a(a), tet_b(b), distance((a->position - b->position).norm()), 
-        constraint_value(constraint_value), start_constraint_value(constraint_value) {}
+        constraint_value(constraint_value), start_constraint_value(constraint_value), 
+        volume_constraint(constraint_value) {}
 
   double constraint_value;
   double start_constraint_value;
+  double volume_constraint;
   bool broken;
   Vector3D distance;
   Tetrahedron *tet_a;
