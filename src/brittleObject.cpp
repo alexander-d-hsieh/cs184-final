@@ -216,14 +216,8 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
   if (!shattered) {
     Vector3D lowest_point = moveObject(delta_t, op, external_accelerations, tetrahedra);
     Vector3D adjustment = Vector3D();
-<<<<<<< HEAD
     if (collided_with_any_object(*collision_objects, tetrahedra, &adjustment)) {
       build_shatter_matrices((*collision_objects)[0], delta_t);
-=======
-//    if (collided_with_any_object(*collision_objects, tetrahedra, &adjustment)) {
-    if (collided_with_any_object(*collision_objects, lowest_point, &adjustment)) {
-      shatter((*collision_objects)[0], delta_t);
->>>>>>> 3e2d46721775a3a533b535a7e66b96fd0d8b6cd3
       shattered = true;
       adjustToPlane(tetrahedra, adjustment);
     }
