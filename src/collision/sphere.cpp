@@ -19,6 +19,10 @@ bool Sphere::collide(Tetrahedron *tet, Vector3D *adjustment) {
 
 }
 
+bool Sphere::collide(Vector3D lowest_point, Vector3D *adjustment) {
+  return false;
+}
+
 void Sphere::render(GLShader &shader) {
   // We decrease the radius here so flat triangles don't behave strangely
   // and intersect with the sphere when rendered

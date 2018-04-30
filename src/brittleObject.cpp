@@ -115,28 +115,42 @@ Matrix3x3 rotate_z_axis(float deg) {
                    0.0, 0.0, 1.0});
 }
 
+//// Returns whether the BrittleObject has collided with any of the collision objects
+//bool collided_with_any_object(
+//    vector<CollisionObject *> &collision_objects,
+//    vector<Tetrahedron *> &tetrahedra,
+//    Vector3D *adjustment) {
+//  for (CollisionObject *co : collision_objects) {
+//    for (Tetrahedron *tet : tetrahedra) {
+//      if (co->collide(tet, adjustment)) {
+//        return true;
+//      }
+//    }
+//  }
+//  return false;
+//}
+
 // Returns whether the BrittleObject has collided with any of the collision objects
 bool collided_with_any_object(
-    vector<CollisionObject *> &collision_objects, 
-    vector<Tetrahedron *> &tetrahedra, 
+    vector<CollisionObject *> &collision_objects,
+    Vector3D lowest_point,
     Vector3D *adjustment) {
   for (CollisionObject *co : collision_objects) {
-    for (Tetrahedron *tet : tetrahedra) {
-      if (co->collide(tet, adjustment)) {
-        return true;
-      }
+    if (co->collide(lowest_point, adjustment)) {
+      return true;
     }
   }
   return false;
 }
 
 // Verlet integration under effects of gravity
-void moveObject(
+Vector3D moveObject(
     double delta_t, 
     BrittleObjectParameters *op,
     vector<Vector3D> &external_accelerations,
     vector<Tetrahedron *> &tetrahedra) {
 
+  Vector3D lowest_point = Vector3D(MAXFLOAT);
   Vector3D external_force = Vector3D();
   for (Vector3D &external_acc : external_accelerations) {
     external_force += external_acc;
@@ -161,6 +175,9 @@ void moveObject(
         tet->position + (1.0 - DAMPING_FACTOR) * tet_dir + total_acc * pow(delta_t, 2);
     tet->last_position = tet->position;
     tet->position = new_tet_position;
+    if (tet->position.y < lowest_point.y) {
+      lowest_point = tet->position;
+    }
 
     // update vertices
     for (Vertex *v : tet->vertices) {
@@ -170,10 +187,14 @@ void moveObject(
             v->position + (1.0 - DAMPING_FACTOR) * v_dir + total_acc * pow(delta_t, 2);
         v->last_position = v->position;
         v->position = new_v_position;
+        if (v->position.y < lowest_point.y) {
+          lowest_point = v->position;
+        }
         v->updated = true;
       }
     }
   }
+  return lowest_point;
 }
 
 // Adjust each point mass and vertex so that after intersection the object rests on the plane.
@@ -193,10 +214,16 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
                      vector<CollisionObject *> *collision_objects) {
   double delta_t = 1.0f / frames_per_sec / simulation_steps;
   if (!shattered) {
-    moveObject(delta_t, op, external_accelerations, tetrahedra);
+    Vector3D lowest_point = moveObject(delta_t, op, external_accelerations, tetrahedra);
     Vector3D adjustment = Vector3D();
+<<<<<<< HEAD
     if (collided_with_any_object(*collision_objects, tetrahedra, &adjustment)) {
       build_shatter_matrices((*collision_objects)[0], delta_t);
+=======
+//    if (collided_with_any_object(*collision_objects, tetrahedra, &adjustment)) {
+    if (collided_with_any_object(*collision_objects, lowest_point, &adjustment)) {
+      shatter((*collision_objects)[0], delta_t);
+>>>>>>> 3e2d46721775a3a533b535a7e66b96fd0d8b6cd3
       shattered = true;
       adjustToPlane(tetrahedra, adjustment);
     }

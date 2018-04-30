@@ -11,7 +11,11 @@
         "fall_height": 5.0,
         "constraint_strength_additive": 0.0,
         "density": 2400,
+<<<<<<< HEAD
         "rotation": [0, 0, 30]
+=======
+        "rotation": [0,0,0]
+>>>>>>> 3e2d46721775a3a533b535a7e66b96fd0d8b6cd3
     }
   }
   
