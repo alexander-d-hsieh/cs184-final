@@ -69,14 +69,6 @@ void ShatterSimulator::init() {
   camera_info.fClip = 10000;
 
   brittle_object->reset(op);
-  // for (Tetrahedron *tetra : brittle_object->tetrahedra) {
-  //   for (int ti = 0; ti < 4; ti++) {
-  //     Triangle *tri = tetra->triangles[ti];
-  //     if (tri->v1->position.x > 0.45 && tri->c != nullptr) {
-  //       tri->c->broken = true;
-  //     } 
-  //   }   
-  // }
 
   // Try to intelligently figure out the camera target
 
@@ -119,7 +111,6 @@ void ShatterSimulator::drawContents() {
     vector<Vector3D> external_accelerations = {gravity};
 
     for (int i = 0; i < simulation_steps; i++) {
-      // THIS IS WHERE WE SIMULATE
       brittle_object->simulate(frames_per_sec, simulation_steps, op, external_accelerations, collision_objects);
     }
   }
@@ -291,12 +282,16 @@ void ShatterSimulator::drawWireframeCracks(GLShader &shader) {
 
 void ShatterSimulator::drawPhong(GLShader &shader) {
   vector<Triangle *> face_triangles;
+  vector<Triangle *> cracked_triangles;
 
   for (Tetrahedron *tetra : brittle_object->tetrahedra) {
     for (int ti = 0; ti < 4; ti++) {
       Triangle *tri = tetra->triangles[ti];
       if (tri->face) {
         face_triangles.push_back(tri);
+      }
+      if (tri->c != nullptr && tri->c->broken) {
+        cracked_triangles.push_back(tri);
       }
     }
   }
@@ -323,6 +318,8 @@ void ShatterSimulator::drawPhong(GLShader &shader) {
     normals.col(i * 3 + 1) << n2.x, n2.y, n2.z;
     normals.col(i * 3 + 2) << n3.x, n3.y, n3.z;
   }
+
+  drawWireframeTrianglesWithColor(cracked_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
 
   shader.setUniform("in_color", color);
   shader.setUniform("eye", Vector3f(cp.x, cp.y, cp.z));
