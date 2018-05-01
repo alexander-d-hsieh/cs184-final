@@ -16,6 +16,7 @@ set(SHATTERSIM_VIEWER_SOURCE
     # Miscellaneous
     # png.cpp
     misc/sphere_drawing.cpp
+    PerlinNoise.cpp
 
     # Camera
     camera.cpp

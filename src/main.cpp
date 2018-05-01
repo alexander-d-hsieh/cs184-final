@@ -13,6 +13,7 @@
 #include "brittleObject.h"
 #include "shatterSimulator.h"
 #include "json.hpp"
+#include "PerlinNoise.h"
 
 typedef uint32_t gid_t;
 
@@ -150,6 +151,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
   ifstream i(filename);
   json j;
   i >> j;
+  PerlinNoise pn;
 
   for (json::iterator it = j.begin(); it != j.end(); ++it) {
     string key = it.key();
@@ -346,8 +348,9 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
           double tri_area = (cross(triangle->v1->position - triangle->v2->position,
                                    triangle->v3->position - triangle->v2->position)).norm() / 2.0;
           double tet_volume = a->volume + b->volume;
-          double constraint_value = (tri_area + 0.5 * tet_volume);
-          // constraint_value *= random;
+          double random = 20. * pn.noise(a->position.x, a->position.y, a->position.z);
+          random -= floor(random);
+          double constraint_value = (tri_area + 0.5 * tet_volume) * random;
           min_con = min(min_con, constraint_value);
           max_con = max(max_con, constraint_value);
           Constraint *c = new Constraint(a, b, constraint_value, false);
