@@ -372,14 +372,6 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
         broken_constraints.push_back(c);
         broken_this_iter++;
       }
-      else {
-        Q_hat.coeffRef(3 * ja) = 0.0;
-        Q_hat.coeffRef(3 * ja + 1) = 0.0;
-        Q_hat.coeffRef(3 * ja + 2) = 0.0;        
-        Q_hat.coeffRef(3 * jb) = 0.0;
-        Q_hat.coeffRef(3 * jb + 1) = 0.0;
-        Q_hat.coeffRef(3 * jb + 2) = 0.0;
-      }
 
     }
     int weakened = 0;
