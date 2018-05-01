@@ -11,14 +11,13 @@
 #include "collision/sphere.h"
 
 #define DAMPING_FACTOR 0.002
-#define CG_ITERS 50
+#define CG_ITERS 100
+
 
 using namespace std;
 using namespace Eigen;
 
 typedef Eigen::SparseMatrix<double> SpMat;
-
-const int NUM_SHATTER_STEPS = 2;
 
 Triangle::Triangle(Vertex *v1, Vertex *v2, Vertex *v3, bool face) {
   this->v1 = v1;
@@ -291,13 +290,21 @@ void BrittleObject::build_shatter_matrices(CollisionObject *collision_object, do
     int ja = tet_a->id;
     int jb = tet_b->id;
     double dist = 0.5 * (tet_a->position - tet_b->position).norm();
-    J.insert(i, 3 * ja) = (tet_a->position.x - tet_b->position.x) / dist;
-    J.insert(i, 3 * ja + 1) = (tet_a->position.y - tet_b->position.y) / dist;
-    J.insert(i, 3 * ja + 2) = (tet_a->position.z - tet_b->position.z) / dist;
+    J.insert(i, 3 * ja) = tet_a->position.x / dist;
+    J.insert(i, 3 * ja + 1) = tet_a->position.y / dist;
+    J.insert(i, 3 * ja + 2) = tet_a->position.z / dist;
 
-    J.insert(i, 3 * jb) = (tet_b->position.x - tet_a->position.x) / dist;
-    J.insert(i, 3 * jb + 1) = (tet_b->position.y - tet_a->position.y) / dist;
-    J.insert(i, 3 * jb + 2) = (tet_b->position.z - tet_a->position.z) / dist;
+    J.insert(i, 3 * jb) = -tet_b->position.x/ dist;
+    J.insert(i, 3 * jb + 1) = -tet_b->position.y/ dist;
+    J.insert(i, 3 * jb + 2) = -tet_b->position.z/ dist;
+
+    // J.insert(i, 3 * ja) = (tet_a->position.x - tet_b->position.x) / dist;
+    // J.insert(i, 3 * ja + 1) = (tet_a->position.y - tet_b->position.y) / dist;
+    // J.insert(i, 3 * ja + 2) = (tet_a->position.z - tet_b->position.z) / dist;
+
+    // J.insert(i, 3 * jb) = (tet_b->position.x - tet_a->position.x) / dist;
+    // J.insert(i, 3 * jb + 1) = (tet_b->position.y - tet_a->position.y) / dist;
+    // J.insert(i, 3 * jb + 2) = (tet_b->position.z - tet_a->position.z) / dist;
 
   }
   cout << "built J\n";
@@ -335,7 +342,7 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
       cout << "Q strength: " << ((double) (CG_ITERS - i) / (0.2 * CG_ITERS)) << endl;
     }
     Q_iter += Q_hat;
-    Q += Q_hat;
+    // Q += Q_hat;
     VectorXd B = -1.0 * J * W * Q_iter;
     cout << "running solver\n";
     VectorXd x = cg.solve(B);
@@ -388,7 +395,11 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
           Vector3D v1 = tet_b->position - tet_a->position;
           Vector3D v2 = tet->position - tet_a->position;
           double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
-          if (theta < PI / 2.0 && theta > -PI / 2.0) {
+          // if (theta < PI / 2.0) {
+            constraint->constraint_value = constraint->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
+            weakened++;
+          // }
+          if (theta < PI / 2.0) {
             constraint->constraint_value = constraint->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
             weakened++;
           }
@@ -401,7 +412,11 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
           Vector3D v1 = tet_a->position - tet_b->position;
           Vector3D v2 = tet->position - tet_b->position;
           double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
-          if (theta < PI / 2.0 && theta > PI / 2.0) {
+          // if (theta < PI / 2.0) {
+            constraint->constraint_value = constraint->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
+            weakened++;
+          // }
+          if (theta < PI / 2.0) {
             constraint->constraint_value = constraint->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
             weakened++;
           }

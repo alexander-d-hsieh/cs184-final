@@ -239,24 +239,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         vertices.push_back(v);
       }
 
-      // unordered_map<vector<int>, Triangle *> triangle_map = unordered_map<vector<int>, Triangle *>();
-
-      // int num_face;
-      // face >> num_face >> d1;
       int face_index, v1, v2, v3, v4;
-      // //TODO add unordered set of triangles
-      // while (face >> face_index >> v1 >> v2 >> v3 >> d1) {
-      //   std::vector<int> vec;
-      //   vec.push_back(v1);
-      //   vec.push_back(v2);
-      //   vec.push_back(v3);
-      //   std::sort( vec.begin(), vec.end() );
-      //   v1 = vec[0];
-      //   v2 = vec[1];
-      //   v3 = vec[2];
-      //   Triangle *t = new Triangle(vertices[v1], vertices[v2], vertices[v3], true);
-      //   triangle_map[vec] = t;
-      // }
       
       unordered_map<uint64_t, Triangle *> triangle_map = unordered_map<uint64_t, Triangle *>();
       vector<Triangle *> all_triangles = vector<Triangle *>();
@@ -348,9 +331,9 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
           double tri_area = (cross(triangle->v1->position - triangle->v2->position,
                                    triangle->v3->position - triangle->v2->position)).norm() / 2.0;
           double tet_volume = a->volume + b->volume;
-          double random = 20. * pn.noise(a->position.x, a->position.y, a->position.z);
+          double random =  10. * pn.noise(a->position.x, a->position.y, a->position.z);
           random -= floor(random);
-          double constraint_value = (tri_area + 0.5 * tet_volume) * random;
+          double constraint_value = 0.1 * (tri_area + 0.5 * tet_volume) * random;
           min_con = min(min_con, constraint_value);
           max_con = max(max_con, constraint_value);
           Constraint *c = new Constraint(a, b, constraint_value, false);
