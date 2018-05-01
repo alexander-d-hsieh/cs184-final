@@ -334,8 +334,8 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
       Q_iter = ((double) (CG_ITERS - i) / (0.2 * CG_ITERS)) * Q;
       cout << "Q strength: " << ((double) (CG_ITERS - i) / (0.2 * CG_ITERS)) << endl;
     }
-    Q_iter -= Q_hat;
-    Q -= Q_hat;
+    Q_iter += Q_hat;
+    Q += Q_hat;
     VectorXd B = -1.0 * J * W * Q_iter;
     cout << "running solver\n";
     VectorXd x = cg.solve(B);

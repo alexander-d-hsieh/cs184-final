@@ -1,0 +1,17 @@
+{
+    "plane": {
+        "point": [0, 0, 0],
+        "normal": [0, 1, 0],
+        "friction": 0.5
+    },
+    "object": {
+        "node" : "../scene/small_bowl.node",
+        "face" : "../scene/small_bowl.face",
+        "ele" : "../scene/small_bowl.ele",
+        "fall_height": 5.0,
+        "constraint_strength_additive": 0.0,
+        "density": 2400,
+        "rotation": [0,0,145]
+    }
+  }
+  
