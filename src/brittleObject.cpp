@@ -11,7 +11,7 @@
 #include "collision/sphere.h"
 
 #define DAMPING_FACTOR 0.002
-#define CG_ITERS 25
+#define CG_ITERS 50
 
 using namespace std;
 using namespace Eigen;
@@ -334,8 +334,8 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
       Q_iter = ((double) (CG_ITERS - i) / (0.2 * CG_ITERS)) * Q;
       cout << "Q strength: " << ((double) (CG_ITERS - i) / (0.2 * CG_ITERS)) << endl;
     }
-    Q_iter += Q_hat;
-    Q += Q_hat;
+    Q_iter -= Q_hat;
+    Q -= Q_hat;
     VectorXd B = -1.0 * J * W * Q_iter;
     cout << "running solver\n";
     VectorXd x = cg.solve(B);
@@ -345,6 +345,7 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
     for (int j = 0; j < constraints.size(); j++) {
       Constraint *c = constraints[j];
       if (c->broken) continue;
+
       Tetrahedron *tet_a = c->tet_a;
       Tetrahedron *tet_b = c->tet_b;
       int ja = tet_a->id;
@@ -356,11 +357,10 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
       fx = Q_hat.coeff(3 * jb);
       fy = Q_hat.coeff(3 * jb + 1);
       fz = Q_hat.coeff(3 * jb + 2);
-      
       Vector3D force_b(fx, fy, fz);
       Vector3D b_to_a = (tet_a->position - tet_b->position).unit();
-      Vector3D a_to_b = -b_to_a;
-      double magnitude_a = dot(force_a, a_to_b);
+
+      double magnitude_a = dot(force_a, -b_to_a);
       double magnitude_b = dot(force_b, b_to_a);
       if (magnitude_a + magnitude_b > c->constraint_value) {
         c->broken = true;
@@ -372,11 +372,20 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
         broken_constraints.push_back(c);
         broken_this_iter++;
       }
+      else {
+        Q_hat.coeffRef(3 * ja) = 0.0;
+        Q_hat.coeffRef(3 * ja + 1) = 0.0;
+        Q_hat.coeffRef(3 * ja + 2) = 0.0;        
+        Q_hat.coeffRef(3 * jb) = 0.0;
+        Q_hat.coeffRef(3 * jb + 1) = 0.0;
+        Q_hat.coeffRef(3 * jb + 2) = 0.0;
+      }
 
     }
     int weakened = 0;
     for (int k = 0; k < broken_constraints.size(); k++) {
       Constraint *c = broken_constraints[k];
+
       Tetrahedron *tet_a = c->tet_a;
       Tetrahedron *tet_b = c->tet_b;
       Vector3D a_to_b = tet_b->position - tet_a->position;
@@ -388,8 +397,7 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
           Vector3D v2 = tet->position - tet_a->position;
           double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
           if (theta < PI / 2.0 && theta > -PI / 2.0) {
-            constraint->constraint_value = min(constraint->constraint_value, 
-                                            constraint->start_constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0)))));
+            constraint->constraint_value = constraint->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
             weakened++;
           }
         }
@@ -401,22 +409,13 @@ void BrittleObject::shatter(CollisionObject *collision_object, double delta_t) {
           Vector3D v1 = tet_a->position - tet_b->position;
           Vector3D v2 = tet->position - tet_b->position;
           double theta = acos(dot(v1, v2) / (v1.norm() * v2.norm()));
-          if (theta < PI / 2.0 && theta > -PI / 2.0) {
-            constraint->constraint_value = min(constraint->constraint_value, 
-                                            constraint->start_constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0)))));
+          if (theta < PI / 2.0 && theta > PI / 2.0) {
+            constraint->constraint_value = constraint->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
             weakened++;
           }
           // constraint->constraint_value = constraint->constraint_value * (0.5005 - (0.4995 * sin(4.0 * theta + (PI / 2.0))));
         }
       }
-      int ja = tet_a->id;
-      int jb = tet_b->id;
-      J.coeffRef(i, 3 * ja) = 0.0;
-      J.coeffRef(i, 3 * ja + 1) = 0.0;
-      J.coeffRef(i, 3 * ja + 2) = 0.0;
-      J.coeffRef(i, 3 * jb) = 0.0;
-      J.coeffRef(i, 3 * jb + 1) = 0.0;
-      J.coeffRef(i, 3 * jb + 2) = 0.0;
     }
 
     cout << "broken " << broken_this_iter << endl;

@@ -331,7 +331,8 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         t4->tetrahedra.push_back(tet);
         brittleObject->tetrahedra.push_back(tet);
       }
-
+      double min_con = 999.0;
+      double max_con = 0.0;
       vector<Triangle *> surface_triangles = vector<Triangle *>();
       int wrong_triangles = 0;
       for (Triangle *triangle: all_triangles) {
@@ -345,8 +346,10 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
           double tri_area = (cross(triangle->v1->position - triangle->v2->position,
                                    triangle->v3->position - triangle->v2->position)).norm() / 2.0;
           double tet_volume = a->volume + b->volume;
-          int random = rand() % 10;
-          double constraint_value = 0.005*(tri_area + 0.5 * tet_volume) + random;
+          double constraint_value = (tri_area + 0.5 * tet_volume);
+          // constraint_value *= random;
+          min_con = min(min_con, constraint_value);
+          max_con = max(max_con, constraint_value);
           Constraint *c = new Constraint(a, b, constraint_value, false);
           triangle->c = c;
           brittleObject->constraints.push_back(c);
@@ -354,6 +357,8 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
           wrong_triangles++;
         }
       }
+      cout << "minimum constraint value is " << min_con << endl;
+      cout << "maximum constraint value is " << max_con << endl;
 
     } else if (key == PLANE) {
       Vector3D point, normal;
