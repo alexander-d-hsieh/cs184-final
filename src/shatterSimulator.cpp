@@ -227,7 +227,7 @@ void ShatterSimulator::drawWireframeConstraints(GLShader &shader) {
 
   drawConstraints(satisfied_constraints, nanogui::Color(0.f, 0.6f, 0.f, 1.f), shader);
   drawConstraints(broken_constraints, nanogui::Color(0.6f, 0.f, 0.f, 1.f), shader);
-  drawWireframeTetrahedra(brittle_object->tetrahedra, shader);
+  // drawWireframeTetrahedra(brittle_object->tetrahedra, shader);
 }
 
 void drawWireframeTrianglesWithColor(
