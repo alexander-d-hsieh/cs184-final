@@ -29,6 +29,7 @@ class Vertex {
 public:
   Vertex(double x, double y, double z, int id) 
       : position(x, y, z), last_position(x, y, z), start_position(x, y, z), id(id), updated(false) {}
+  Vertex(Vertex *v);
   Vector3D position;
   Vector3D last_position;
   Vector3D start_position;
@@ -65,8 +66,10 @@ public:
   Vector3D position;
   Vector3D last_position;
   Vector3D forces;
+  bool traversed;
 
   Tetrahedron* get_neighbor(Triangle *t);
+  void group(vector<Tetrahedron*> &new_brittle_obj);
 };
 
 class Constraint {
@@ -124,10 +127,13 @@ struct BrittleObject {
   // void shatter();
   void shatter(CollisionObject *collision_object, double delta_t);
   void build_shatter_matrices(CollisionObject *collision_object, double delta_t);
+  void explode();
 
   // Object components
   vector<Tetrahedron *> tetrahedra;
   vector<Constraint *> constraints;
+  vector<vector<Tetrahedron *>> shards;
+  vector<Vector3D> forces;
   Vector3D start_position, position, last_position;
   bool shattered;
   VectorXd Q, Q_hat;

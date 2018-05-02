@@ -68,8 +68,16 @@ Tetrahedron::Tetrahedron(Triangle *t1, Triangle *t2, Triangle *t3, Triangle *t4,
   this->position = center;
   this->last_position = center;
   this->id = index;
+  this->traversed = false;
 }
 
+Vertex::Vertex(Vertex *v) {
+  this->position = v->position;
+  this->last_position = v->last_position;
+  this->start_position = v->start_position;
+  this->id = v->id + rand();
+  this->updated = false;
+}
 
 BrittleObject::BrittleObject() {
   this->constraints = vector<Constraint *>();
@@ -83,6 +91,8 @@ BrittleObject::BrittleObject() {
   this->J = SpMat();
   this->W = SpMat();
   this->shatter_iter = 0;
+  this->shards = vector<vector<Tetrahedron *>>();
+  this->forces = vector<Vector3D>();
 }
 
 BrittleObject::~BrittleObject() {
@@ -143,6 +153,7 @@ bool collided_with_any_object(
 }
 
 // Verlet integration under effects of gravity
+
 Vector3D moveObject(
     double delta_t, 
     BrittleObjectParameters *op,
@@ -224,6 +235,59 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
   if (shattered && shatter_iter < CG_ITERS) {
     shatter((*collision_objects)[0], delta_t);
   }
+  else if (shatter_iter >= CG_ITERS) {
+    explode();
+//    cout << shards.size() << endl;
+    for (int i = 0; i < shards.size(); i++) {
+      vector<Vector3D> force = {5.0 * forces[i]};
+      moveObject(delta_t, op, force, shards[i]);
+    }
+  }
+}
+
+void Tetrahedron::group(vector<Tetrahedron *> &object) {
+  this->traversed = true;
+  for (int i = 0; i < triangles.size(); i++) {
+    Triangle *t = triangles[i];
+    Tetrahedron *neighbor = t->tetrahedra[0] == this ? t->tetrahedra[1] : t->tetrahedra[0];
+    Constraint *c = t->c;
+    if (c == NULL) continue;
+    if (!c->broken && !neighbor->traversed) {
+      object.push_back(neighbor);
+      neighbor->group(object);
+    }
+    if (c->broken) {
+      Vertex *v1 = new Vertex(t->v1);
+      Vertex *v2 = new Vertex(t->v2);
+      Vertex *v3 = new Vertex(t->v3);
+      Triangle *new_tri = new Triangle(v1, v2, v3, true);
+      triangles[i] = new_tri;
+    }
+  }
+}
+
+void BrittleObject::explode() {
+  int shard_number = 0;
+  for (Tetrahedron *tet: tetrahedra) {
+    if (!tet->traversed) {
+      vector<Tetrahedron*> new_brittle_obj = vector<Tetrahedron*>();
+      new_brittle_obj.push_back(tet);
+      tet->group(new_brittle_obj);
+      shards.push_back(new_brittle_obj);
+      cout << new_brittle_obj.size() << endl;
+    }
+  }
+
+  for (vector<Tetrahedron*> obj : shards) {
+    Vector3D center = Vector3D();
+    for (Tetrahedron *tet : obj) {
+      center += tet->position;
+      tet->position = tet->last_position;
+    }
+    center /= obj.size();
+    forces.push_back(center);
+  }
+
 }
 
 void BrittleObject::reset(BrittleObjectParameters *op) {

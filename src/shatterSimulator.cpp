@@ -290,7 +290,7 @@ void ShatterSimulator::drawPhong(GLShader &shader) {
       if (tri->face) {
         face_triangles.push_back(tri);
       }
-      if (tri->c != nullptr && tri->c->broken) {
+      if (tri->c != NULL && tri->c->broken) {
         cracked_triangles.push_back(tri);
       }
     }
