@@ -24,7 +24,7 @@ Triangle::Triangle(Vertex *v1, Vertex *v2, Vertex *v3, bool face) {
   this->v2 = v2;
   this->v3 = v3;
   this->face = face;
-
+  this->c = NULL;
   this->tetrahedra = vector<Tetrahedron *>();
 }
 
@@ -237,9 +237,8 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
   }
   else if (shatter_iter >= CG_ITERS) {
     explode();
-//    cout << shards.size() << endl;
     for (int i = 0; i < shards.size(); i++) {
-      vector<Vector3D> force = {5.0 * forces[i]};
+      vector<Vector3D> force = {forces[i]};
       moveObject(delta_t, op, force, shards[i]);
     }
   }
@@ -274,7 +273,6 @@ void BrittleObject::explode() {
       new_brittle_obj.push_back(tet);
       tet->group(new_brittle_obj);
       shards.push_back(new_brittle_obj);
-      cout << new_brittle_obj.size() << endl;
     }
   }
 
