@@ -30,6 +30,7 @@ public:
   Vertex(double x, double y, double z, int id) 
       : position(x, y, z), last_position(x, y, z), start_position(x, y, z), id(id), updated(false) {}
   Vertex(Vertex *v);
+
   Vector3D position;
   Vector3D last_position;
   Vector3D start_position;
@@ -44,7 +45,9 @@ public:
   Vertex *v1, *v2, *v3;
   bool face;
   Constraint *c;
-  vector<Tetrahedron *> tetrahedra;
+//  vector<Tetrahedron *> tetrahedra;
+  Tetrahedron *tet;
+  Triangle *pair;
 
   Vector3D normal(Vector3D camera_pos);
 };
@@ -98,6 +101,8 @@ public:
   Vector3D distance;
   Tetrahedron *tet_a;
   Tetrahedron *tet_b;
+  Triangle *tri_a;
+  Triangle *tri_b;
 };
 
 struct BrittleObjectParameters {

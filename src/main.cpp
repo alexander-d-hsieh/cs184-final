@@ -220,7 +220,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
       }
 
       ifstream node(node_file);
-      ifstream face(face_file);
+//      ifstream face(face_file);
       ifstream ele(ele_file);
 
 
@@ -239,7 +239,7 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         vertices.push_back(v);
       }
 
-      int face_index, v1, v2, v3, v4;
+      int v1, v2, v3, v4;
       
       unordered_map<uint64_t, Triangle *> triangle_map = unordered_map<uint64_t, Triangle *>();
       vector<Triangle *> all_triangles = vector<Triangle *>();
@@ -260,10 +260,17 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         uint64_t hash = (((vec[0] << 20) + vec[1]) << 20) + vec[2];
         if (triangle_map.find(hash) == triangle_map.end()) {
           t1 = new Triangle(vertices[v1], vertices[v2], vertices[v3], false);
+          t1->pair = nullptr;
+          t1->c = nullptr;
           triangle_map[hash] = t1;
           all_triangles.push_back(t1);
         } else {
-          t1 = triangle_map[hash];
+          Triangle *pair = triangle_map[hash];
+          t1 = new Triangle(new Vertex(vertices[v1]), new Vertex(vertices[v2]), new Vertex(vertices[v3]), false);
+          t1->pair = pair;
+          t1->c = nullptr;
+          pair->pair = t1;
+          all_triangles.push_back(t1);
         }
         vec.clear();
 
@@ -274,10 +281,17 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         hash = (((vec[0] << 20) + vec[1]) << 20) + vec[2];
         if (triangle_map.find(hash) == triangle_map.end()) {
           t2 = new Triangle(vertices[v1], vertices[v2], vertices[v4], false);
+          t2->pair = nullptr;
+          t2->c = nullptr;
           triangle_map[hash] = t2;
           all_triangles.push_back(t2);
         } else {
-          t2 = triangle_map[hash];
+          Triangle *pair = triangle_map[hash];
+          t2 = new Triangle(new Vertex(vertices[v1]), new Vertex(vertices[v2]), new Vertex(vertices[v4]), false);
+          t2->pair = pair;
+          t2->c = nullptr;
+          pair->pair = t2;
+          all_triangles.push_back(t2);
         }
         vec.clear();
 
@@ -288,10 +302,17 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         hash = (((vec[0] << 20) + vec[1]) << 20) + vec[2];
         if (triangle_map.find(hash) == triangle_map.end()) {
           t3 = new Triangle(vertices[v1], vertices[v3], vertices[v4], false);
+          t3->pair = nullptr;
+          t3->c = nullptr;
           triangle_map[hash] = t3;
           all_triangles.push_back(t3);
         } else {
-          t3 = triangle_map[hash];
+          Triangle *pair = triangle_map[hash];
+          t3 = new Triangle(new Vertex(vertices[v1]), new Vertex(vertices[v3]), new Vertex(vertices[v4]), false);
+          t3->pair = pair;
+          t3->c = nullptr;
+          pair->pair = t3;
+          all_triangles.push_back(t3);
         }
         vec.clear();
 
@@ -302,45 +323,57 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         hash = (((vec[0] << 20) + vec[1]) << 20) + vec[2];
         if (triangle_map.find(hash) == triangle_map.end()) {
           t4 = new Triangle(vertices[v2], vertices[v3], vertices[v4], false);
+          t4->pair = nullptr;
+          t4->c = nullptr;
           triangle_map[hash] = t4;
           all_triangles.push_back(t4);
         } else {
-          t4 = triangle_map[hash];
+          Triangle *pair = triangle_map[hash];
+          t4 = new Triangle(new Vertex(vertices[v2]), new Vertex(vertices[v3]), new Vertex(vertices[v4]), false);
+          t4->pair = pair;
+          t4->c = nullptr;
+          pair->pair = t4;
+          all_triangles.push_back(t4);
         }
         vec.clear();
       
         Tetrahedron* tet = new Tetrahedron(t1, t2, t3, t4, vertices[v1], vertices[v2], vertices[v3], vertices[v4], op->density, ele_index);
-        t1->tetrahedra.push_back(tet);
-        t2->tetrahedra.push_back(tet);
-        t3->tetrahedra.push_back(tet);
-        t4->tetrahedra.push_back(tet);
+//        t1->tetrahedra.push_back(tet);
+//        t2->tetrahedra.push_back(tet);
+//        t3->tetrahedra.push_back(tet);
+//        t4->tetrahedra.push_back(tet);
+        t1->tet = tet;
+        t2->tet = tet;
+        t3->tet = tet;
+        t4->tet = tet;
         brittleObject->tetrahedra.push_back(tet);
       }
+
       double min_con = 999.0;
       double max_con = 0.0;
-      vector<Triangle *> surface_triangles = vector<Triangle *>();
+//      vector<Triangle *> surface_triangles = vector<Triangle *>();
       int wrong_triangles = 0;
       for (Triangle *triangle: all_triangles) {
-        if (triangle->tetrahedra.size() == 1) {
+        if (triangle->pair == nullptr) {
           triangle->face = true;
-          surface_triangles.push_back(triangle);
-          triangle->c = nullptr;
-        } else if (triangle->tetrahedra.size() == 2) {
-          Tetrahedron *a = triangle->tetrahedra[0];
-          Tetrahedron *b = triangle->tetrahedra[1];
-          double tri_area = (cross(triangle->v1->position - triangle->v2->position,
-                                   triangle->v3->position - triangle->v2->position)).norm() / 2.0;
-          double tet_volume = a->volume + b->volume;
-          double random =  10. * pn.noise(a->position.x, a->position.y, a->position.z);
-          random -= floor(random);
-          double constraint_value = 0.1 * (tri_area + 0.5 * tet_volume) * random;
-          min_con = min(min_con, constraint_value);
-          max_con = max(max_con, constraint_value);
-          Constraint *c = new Constraint(a, b, constraint_value, false);
-          triangle->c = c;
-          brittleObject->constraints.push_back(c);
+//          surface_triangles.push_back(triangle);
         } else {
-          wrong_triangles++;
+          if (triangle->c == nullptr) {
+            Triangle *pair = triangle->pair;
+            Tetrahedron *a = triangle->tet;
+            Tetrahedron *b = pair->tet;
+            double tri_area = (cross(triangle->v1->position - triangle->v2->position,
+                                     triangle->v3->position - triangle->v2->position)).norm() / 2.0;
+            double tet_volume = a->volume + b->volume;
+            double random =  10. * pn.noise(a->position.x, a->position.y, a->position.z);
+            random -= floor(random);
+            double constraint_value = 0.1 * (tri_area + 0.5 * tet_volume) * random;
+            min_con = min(min_con, constraint_value);
+            max_con = max(max_con, constraint_value);
+            Constraint *c = new Constraint(a, b, constraint_value, false);
+            triangle->c = c;
+            brittleObject->constraints.push_back(c);
+          }
         }
       }
       cout << "minimum constraint value is " << min_con << endl;
