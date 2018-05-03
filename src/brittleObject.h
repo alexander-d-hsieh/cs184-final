@@ -57,6 +57,7 @@ public:
   vector<Triangle *> triangles;
   vector<Vertex *> vertices;
   double volume;
+  int shard;
 
     // static values
   Vector3D start_position;
@@ -69,7 +70,7 @@ public:
   bool traversed;
 
   Tetrahedron* get_neighbor(Triangle *t);
-  void group(vector<Tetrahedron*> &new_brittle_obj);
+  // void group(vector<Tetrahedron*> &new_brittle_obj);
 };
 
 class Constraint {

@@ -244,48 +244,100 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
   }
 }
 
-void Tetrahedron::group(vector<Tetrahedron *> &object) {
-  this->traversed = true;
-  for (int i = 0; i < triangles.size(); i++) {
-    Triangle *t = triangles[i];
-    Tetrahedron *neighbor = t->tetrahedra[0] == this ? t->tetrahedra[1] : t->tetrahedra[0];
-    Constraint *c = t->c;
-    if (c == NULL) continue;
-    if (!c->broken && !neighbor->traversed) {
-      object.push_back(neighbor);
-      neighbor->group(object);
-    }
-    if (c->broken) {
-      Vertex *v1 = new Vertex(t->v1);
-      Vertex *v2 = new Vertex(t->v2);
-      Vertex *v3 = new Vertex(t->v3);
-      Triangle *new_tri = new Triangle(v1, v2, v3, true);
-      triangles[i] = new_tri;
-    }
-  }
-}
+// void Tetrahedron::group(vector<Tetrahedron *> &object) {
+//   this->traversed = true;
+//   for (int i = 0; i < triangles.size(); i++) {
+//     Triangle *t = triangles[i];
+//     Tetrahedron *neighbor = t->tetrahedra[0] == this ? t->tetrahedra[1] : t->tetrahedra[0];
+//     Constraint *c = t->c;
+//     if (c == NULL) continue;
+//     if (!c->broken && !neighbor->traversed) {
+//       object.push_back(neighbor);
+//       neighbor->group(object);
+//     }
+//     if (c->broken) {
+//       Vertex *v1 = new Vertex(t->v1);
+//       Vertex *v2 = new Vertex(t->v2);
+//       Vertex *v3 = new Vertex(t->v3);
+//       Triangle *new_tri = new Triangle(v1, v2, v3, true);
+//       new_tri->c = nullptr;
+//       triangles[i] = new_tri;
+//     }
+//   }
+// }
+
+// void BrittleObject::explode() {
+//   int shard_number = 0;
+//   for (Tetrahedron *tet: tetrahedra) {
+//     if (!tet->traversed) {
+//       vector<Tetrahedron*> new_brittle_obj = vector<Tetrahedron*>();
+//       new_brittle_obj.push_back(tet);
+//       tet->group(new_brittle_obj);
+//       shards.push_back(new_brittle_obj);
+//     }
+//   }
+
+//   for (vector<Tetrahedron*> obj : shards) {
+//     Vector3D center = Vector3D();
+//     for (Tetrahedron *tet : obj) {
+//       center += tet->position;
+//       tet->position = tet->last_position;
+//     }
+//     center /= obj.size();
+//     forces.push_back(center);
+//   }
+
+// }
 
 void BrittleObject::explode() {
-  int shard_number = 0;
-  for (Tetrahedron *tet: tetrahedra) {
-    if (!tet->traversed) {
-      vector<Tetrahedron*> new_brittle_obj = vector<Tetrahedron*>();
-      new_brittle_obj.push_back(tet);
-      tet->group(new_brittle_obj);
-      shards.push_back(new_brittle_obj);
+  int shard_num = -1;
+  vector<Tetrahedron *> stack = vector<Tetrahedron *>();
+  for (Tetrahedron* tetra : tetrahedra) {
+    if (!tetra->traversed) {
+      stack.push_back(tetra);
+      vector<Tetrahedron *> shard = vector<Tetrahedron *>();
+      shard_num++;
+      while (stack.size() != 0) {
+        Tetrahedron *tet = stack.back();
+        stack.pop_back();
+        if (!tet->traversed) {
+          tet->traversed = true;
+          tet->shard = shard_num;
+          shard.push_back(tet);
+          for (int i = 0; i < tet->triangles.size(); i++) {
+            Triangle *t = tet->triangles[i];
+            Tetrahedron *neighbor = t->tetrahedra[0] == tet ? t->tetrahedra[1] : t->tetrahedra[0];
+            Constraint *c = t->c;
+            if (c == NULL) continue;
+            else if (!c->broken) {
+              stack.push_back(neighbor);
+            }
+            // else if (c->broken) {
+            Vertex *v1 = new Vertex(t->v1);
+            Vertex *v2 = new Vertex(t->v2);
+            Vertex *v3 = new Vertex(t->v3);
+            Triangle *new_tri = new Triangle(v1, v2, v3, true);
+            // maybe change this to c
+            new_tri->c = c;
+            tet->triangles[i] = new_tri;
+            // }
+          }
+        }
+      }
+      shards.push_back(shard);
     }
   }
 
-  for (vector<Tetrahedron*> obj : shards) {
+  for (vector<Tetrahedron*> shard : shards) {
     Vector3D center = Vector3D();
-    for (Tetrahedron *tet : obj) {
+    for (Tetrahedron *tet : shard) {
       center += tet->position;
-      tet->position = tet->last_position;
+      tet->last_position = tet->position;
     }
-    center /= obj.size();
+    center /= shard.size();
     forces.push_back(center);
+    cout << "center force: " << center << "\n";
   }
-
 }
 
 void BrittleObject::reset(BrittleObjectParameters *op) {
