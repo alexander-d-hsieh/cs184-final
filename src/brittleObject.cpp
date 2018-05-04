@@ -287,9 +287,6 @@ void BrittleObject::reset(BrittleObjectParameters *op) {
     tet->position = (rotation * tet->start_position) + height_additive;
     tet->last_position = (rotation * tet->start_position) + height_additive;
     for (Vertex *v : tet->vertices) {
-      if (v->id == 240) {
-        cout << "here\n";
-      }
       v->position = (rotation * v->start_position) + height_additive;
       v->last_position = (rotation * v->start_position) + height_additive;
     }

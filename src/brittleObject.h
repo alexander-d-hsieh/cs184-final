@@ -100,8 +100,6 @@ public:
   Vector3D distance;
   Tetrahedron *tet_a;
   Tetrahedron *tet_b;
-  Triangle *tri_a;
-  Triangle *tri_b;
 };
 
 struct BrittleObjectParameters {
