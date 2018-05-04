@@ -92,6 +92,7 @@
         maximum strength and calculate the force that the constraint must exert when impact occurs, and if the forces
          is greater than its strength, it is broken.
     </p>
+    <h3 align="left">Fracture Algorithm</h3>
     <p>
         In the fracturing simulation, we are estimating if the constraint is broken by
         finding the reaction forces exerted by the pointmasses in response to
@@ -101,23 +102,33 @@
     <center>where \(J = \frac{\partial C }{\partial p}\)</center>
     <p>
         Here \(Q\) represents the impact force vector, \(W\) is the square matrix with elementwise inverse of each pointmass on the
-        diagonals, and \(\lambda\) is our unknown.
-    </p>
-    <p>
-        Upon solving for λ, we can find the reaction force vector by finding \(\hat{Q} = J^T\lambda\). At this point, it was
-        unclear to use how the paper derived the forces exerted by the constraints from the vector \(\hat{Q}\). Since this is 
-        a vector of forces acted on the pointmasses, we found it suitable to derive the force exerted by the constraint
+        diagonals, and \(\lambda\) is our unknown. Upon solving for λ, we can find the reaction force vector by finding $$\hat{Q} = J^T\lambda$$
+
+        At this point, it was
+        unclear to use how the paper derived the forces exerted by the constraints from the vector \(\hat{Q}\) since it is 
+        a vector of forces acted on the pointmasses. We found it suitable to derive the force exerted by the constraint
         by projecting the reaction forces of the two pointmasses onto the unit vector of \(p_a - p_b\). If the direction of
         the two forces both go outward we consider it a tensile force, and if the direction of the two forces both go inward
         we consider it a compressive force. The paper notes that brittle material are 8 times stronger under compressive forces 
         compared to extension forces, which we incorporate into our criteria for breaking a constraint.
     </p>
-    <h3 align="left">Fracture Algorithm</h3>
+    <h3 align="left">Iterative Approach</h3>
+    <img src="../images/impact_magnitude.png" align="right" width="350px" />
     <p>
         Solving the optimization problem is done by using a conjugate gradient descent solver provided in the 
-        <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> library.
-
+        <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> library. 
+        We calculate a solution to the CGD equation between 50 - 100 iterations, depending on the size of the model. 
+        We vary the magnitude of the impact for \(Q\) every iteration using the function shown on the right. 
+        In the first 80% of our simulation, the impact force linearly grows from 0% to 100% 
+        and the in the final 20%, the impact forces linearly decreases back down to 0%. 
     </p>
+    <p>
+        This timed release of the impact force ensures that the reaction forces are only some 
+        \(\epsilon\) greater than constraint strength before the constraint is broken. The iterative approach
+        also allows the forces to be "transmitted" throughout the object as we add the reaction forces \(\hat{Q}\) into 
+        the impact force \(Q\) for the next iteration to promote crack growth.
+    </p>
+    
 
     <h3 align="left">"Exploding" the Shards</h3>
     <p>
@@ -246,7 +257,12 @@
 
     <p>
         <b>Alex:</b> <br>
-
+        I generated the models that were used by for the simulation by using TetGen program and worked on the parsing of the 
+        files to create the in-memory data structures we used. Along with Derek, I worked on designing the data structures
+        that were used for the entire project. Finally, I spent a majority of the time working on the implement fracturing algorithm, including
+        calculating impact forces, building the matrices and vectors, running the CGD, and calculating constraint reaction forces.
+        I also did part of the explosion simulation by running a DFS algorithm to group all of the tetrahedron objects that 
+        were still attached via unbroken constraints.
     </p>
 
     <p>
