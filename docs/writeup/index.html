@@ -26,7 +26,7 @@
             border-radius: 4px;
         }
     </style>
-    <title>CS 184 Shatter Simulator</title>
+    <title>Fracturing of Brittle Objects</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
 </head>
@@ -52,7 +52,8 @@
         <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable
             Simulation of the Shattering of Brittle Objects</a>.
         The final result is a simulator capable of producing realistic fractures in an object when dropped from various heights
-        and angles onto a plane. This project is a real-time simulator written with OpenGL in c++.
+        and angles onto a plane. This paper explains how to model the object, create useful visualizations, implement the fracturing
+        algorithm, create constraint heuristics, and simulate the broken shards moving away from each other so that the shards are visible.
     </p>
 
     <h2 align="left" id="tech">Technical Approach</h2>
@@ -60,12 +61,12 @@
 
     <h3 align="left">Model</h3>
     <p>
-        <img src="../images/model_diagram.png" align="right" width="400px"/>
+        <img src="../images/model_diagram.png" align="right" width="300px"/>
         Our 3D object is modeled as a tetrahedron mesh. We generated these meshes using a tetrahedron generator we found online, called
-        tetgen, after using an online program to covert dae files to ply files. We used the teapot.dae file from previous projects and
-        also found a bowl.dae file online. Each tetrahedron is comprised of 4 triangles, 4 vertices, and 1 point
-        mass at its center. A tetrahedron has a constraint with each neighboring tetrahedron, that is a tetrahedron it shares
-        a triangle with, and these constraints connect the two tetrahedron’s point masses.
+        TetGen, after using an online program to covert dae files to ply files. We primarily used a bowl.dae file that we found online.
+        Each tetrahedron is comprised of 4 triangles, 4 vertices, and 1 point mass at its center. A tetrahedron has a constraint with
+        each neighboring tetrahedron, that is a tetrahedron it shares a triangle with, and these constraints connect the two tetrahedron’s
+        point masses.
     </p>
 
     <h3 align="left">Visualizations</h3>
@@ -121,30 +122,36 @@
     <h3 align="left">"Exploding" the Shards</h3>
     <p>
         In order to better see how the object shattered, after shattering it we move each shard outward from the center of the object so
-        that each shard can be seen individually.
+        that each shard can be seen individually. After the fracturing algorithm is completed, we run depth first search on our mesh in
+        order to group our tetrahedra into shards. We treat our tetrahedron mesh as a disconnected graph, so we run DFS on
+        each tetrahedron that has not yet been visited, and each time DFS is restarted we create a new shard and each tetrahedron traversed
+        is added to this shard. For each tetrahedron, for each of its neighbors, if the constraint between the two tetrahedrons is not
+        broken, we add it to the stack to be traversed later, as per the DFS algorithm. It is possible for two neighboring tetrahdrons to
+        be in the same shard even if the constraint between them is broken, because they may be connected via other tetrahedrons. In this
+        case the fracture is just a crack and not a true break.
+    </p>
+    <p>
+        After each tetrahedron has been grouped into a shard, we compute the center of each shard by averaging the positions of the
+        tetrahedrons' point masses. Then, the acceleration applied to "explode" the shard is the vector from the shard center to the
+        center of the brittle object. We then use the same verlet integration function as falling to move the shards away from the center,
+        where the external accelerations vector is just the exploding acceleration.
+    </p>
+    <p>
+        The major problem we faced in implementing this was dealing with the creation of new triangles and vertices for faces that had been
+        cracked. In our original implementation, tetrahedrons that shared triangles and vertices all referenced the same objects, and when
+        the shattering occurred, we tried to create new triangles and vertices so that these objects would no longer be shared between two
+        or more tetrahedrons and they could be moved away from each other. This proved to be very difficult to correctly implement and
+        debug, so instead when we create our tetrahedron mesh at the beginning of the simulation, each tetrahedron is comprised of its own
+        triangles and vertices that are not shared with any other tetrahedron. This allows each tetrahedron to be easily separated from its
+        neighbors because its vertices can be moved without affecting the location of its neighboring tetrahedra.
     </p>
 
 
     <h2 align="left" id="results">Results</h2>
-    <div align="center">
-        <table style="width=100%">
-            <tr>
-                <td>
-                    <img src="../images/constraint_cracks.png" align="middle" height="250px"/>
-                    <figcaption align="middle"></figcaption>
-                </td>
-                <td>
-                    <img src="../images/tetra_cracks.png" align="middle" height="250px"/>
-                    <figcaption align="middle"></figcaption>
-                </td>
-                <td>
-                    <img src="../images/shaded_cracks.png" align="middle" height="250px"/>
-                    <figcaption align="middle"></figcaption>
-                </td>
-            </tr>
-        </table>
-    </div>
-
+    <p>
+        Wireframe showing constraints between tetrahedra. Broken constraints are shown in red. After the pieces are separated, only
+        broken constraints between tetrahedra in the same piece are shown.
+    </p>
     <div align="center">
         <table style="width=100%">
             <tr>
@@ -152,14 +159,33 @@
                     <video src="../images/bowl30_height5_constraints.mp4" type="video/mp4" width="400" controls align="middle"/>
                 </td>
             </tr>
+        </table>
+    </div>
+
+    <p>
+        Wireframe showing face tetrahedra. Internal broken tetrahedra are shown in red.
+    </p>
+    <div align="center">
+        <table style="width=100%">
             <tr>
                 <td>
                     <video src="../images/bowl30_height5_tetra.mp4" type="video/mp4" width="400" controls align="middle"/>
+
                 </td>
             </tr>
+        </table>
+    </div>
+
+    <p>
+        Object rendered with Blinn-Phong shading. Internal broken tetrahedra are shown in grey in order
+        to visualize the cracks.
+    </p>
+    <div align="center">
+        <table style="width=100%">
             <tr>
                 <td>
                     <video src="../images/bowl30_height5_shaded.mp4" type="video/mp4" width="400" controls align="middle"/>
+
                 </td>
             </tr>
         </table>
@@ -228,7 +254,7 @@
         I did a lot of work on the visualization aspect of this project. I came up with and implemented the two wireframe appearance
         scehemes, and implemented the Blinn-Phong shading (with corrected normal directions) (minus the cracks shown on the surface,
         Nicole did that!). I consolidated all the data structures for tetrahedra into one file, and did a little work on the main
-        simulate() loop. I imported open-source code for Perlin Noise, and used it to weaken the constraints as described above. I added
+        simulate() loop. I imported open-source code for Perlin Noise, and used it on the constraint strengths as described above. I added
         a fall height parameters to the UI and implemented it in the simulation side. I added the simulation statistics to the bottom of
         the UI.
     </p>
