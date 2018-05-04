@@ -69,9 +69,11 @@
     </p>
 
     <h3 align="left">Visualizations</h3>
-    <h3 align="left">Visualizations</h3>
         <p>
-            The original goal was to shatter the teapot, which was modeled as having a solid center. This created a challenge of visualizing what constraints were broken since a strong majority of constraints were on the inside of the mesh. The first approach was to use Blinn-Phong shading with 50% opacity for only surface trianges. However, this did not work as expected, as demonstrated by the image below.
+            The original goal was to shatter the teapot, which was modeled as having a solid center. This created a challenge of
+            visualizing what constraints were broken since a strong majority of constraints were on the inside of the mesh. The first
+            approach was to use Blinn-Phong shading with 50% opacity for only surface trianges. However, this did not work as expected,
+            as demonstrated by the image below.
         </p>
         <div align="middle">
             <img src="../images/transparent.png" width="400px" />
@@ -79,6 +81,7 @@
         </div>
         <p>
             This problem arises because the triangles in the mesh are in random order
+        </p>
     <h3 align="left">Constraints</h3>
     <p>
         The set of constraints between pointmasses can be represented by the vector of constraint functions \(C\) of the 
@@ -117,7 +120,8 @@
 
     <h3 align="left">"Exploding" the Shards</h3>
     <p>
-        In order to better see
+        In order to better see how the object shattered, after shattering it we move each shard outward from the center of the object so
+        that each shard can be seen individually.
     </p>
 
 
@@ -167,49 +171,51 @@
     <h3 align="left">Project Resources</h3>
     <p>
         Papers:
-        <p>
-            <ul>
-                <li>
-                    <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable
-                        Simulation of the Shattering of Brittle Objects</a>
-                </li>
-            </ul>
-        </p>
+        <ul>
+            <li>
+                <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable
+                    Simulation of the Shattering of Brittle Objects</a>
+            </li>
+        </ul>
 
         Graphics Libraries:
-        <p>
-            <ul>
-                <li>
-                    OpenGL
-                </li>
-                <li>
-                    <a href="http://wias-berlin.de/software/index.jsp?id=TetGen&lang=1">TetGen</a> for tetrahedron mesh generation<br>
-                </li>
-                <li>
-                    <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> for linear algebra<br>
-                </li>
-            </ul>
-        </p>
+        <ul>
+            <li>
+                OpenGL
+            </li>
+            <li>
+                <a href="http://wias-berlin.de/software/index.jsp?id=TetGen&lang=1">TetGen</a> for tetrahedron mesh generation<br>
+            </li>
+            <li>
+                <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> for linear algebra<br>
+            </li>
+        </ul>
+
+        Open Source Code used: <br />
+        <ul>
+            <li>
+                <a href="https://solarianprogrammer.com/2012/07/18/perlin-noise-cpp-11/">Perlin Noise in C++11</a>
+            </li>
+        </ul>
 
         Architecture:
-        <p>
-            <ul>
-                <li>
-                    Built off of Project 4 Clothsim
-                </li>
-            </ul>
-        </p>
-    </p>
-    <p>
-        Open Source Code used: <br />
-        <a href="https://solarianprogrammer.com/2012/07/18/perlin-noise-cpp-11/">Perlin Noise in C++11</a>
+        <ul>
+            <li>
+                Built off of Project 4 Clothsim
+            </li>
+        </ul>
     </p>
 
     <h2 align="left" id="contributions">Team Members Contributions</h2>
 
     <p>
         <b>Nicole:</b> <br>
-
+        I created the initial foundation of our project by gutting the project 4 code, deleting unneeded files, altering the kept files,
+        and making everything build and compile. I also implemented the code for making the object fall to the plane by altering the
+        verlet integration code from project 4. I helped work on the heuristic for our constraint strengths and implemented the crack
+        growth that occurs at each iteration of our fracture algorithm. I created the ability for the object to be rotated about the
+        x, y, and z-axes and added these controls to the GUI. Along with Alex, I worked on getting the object to "explode" after
+        fracturing in order to better see the shards.
     </p>
 
     <p>
@@ -219,7 +225,12 @@
 
     <p>
         <b>Derek:</b> <br>
-        I did a lot of work on the visualization aspect of this project. I came up with and implemented the two wireframe appearance scehemes, and implemented the Blinn-Phong shading (with corrected normal directions) (minus the cracks shown on the surface, Nicole did that!). I consolidated all the data structures for tetrahedra into one file, and did a little work on the main simulate() loop. I imported open-source code for Perlin Noise, and used it to weaken the constraints as described above. I added a fall height parameters to the UI and implemented it in the simulation side. I added the simulation statistics to the bottom of the UI.
+        I did a lot of work on the visualization aspect of this project. I came up with and implemented the two wireframe appearance
+        scehemes, and implemented the Blinn-Phong shading (with corrected normal directions) (minus the cracks shown on the surface,
+        Nicole did that!). I consolidated all the data structures for tetrahedra into one file, and did a little work on the main
+        simulate() loop. I imported open-source code for Perlin Noise, and used it to weaken the constraints as described above. I added
+        a fall height parameters to the UI and implemented it in the simulation side. I added the simulation statistics to the bottom of
+        the UI.
     </p>
 
 </div>
