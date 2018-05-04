@@ -56,6 +56,7 @@
     </p>
 
     <h2 align="left" id="tech">Technical Approach</h2>
+    <h3 align="left">Constraint Heuristics</h3>
 
     <h3 align="left">Model</h3>
     <p>
@@ -68,7 +69,16 @@
     </p>
 
     <h3 align="left">Visualizations</h3>
-
+    <h3 align="left">Visualizations</h3>
+        <p>
+            The original goal was to shatter the teapot, which was modeled as having a solid center. This created a challenge of visualizing what constraints were broken since a strong majority of constraints were on the inside of the mesh. The first approach was to use Blinn-Phong shading with 50% opacity for only surface trianges. However, this did not work as expected, as demonstrated by the image below.
+        </p>
+        <div align="middle">
+            <img src="../images/transparent.png" width="400px" />
+            <figcaption>50% opacity Blinn-Phong shading</figcaption>
+        </div>
+        <p>
+            This problem arises because the triangles in the mesh are in random order
     <h3 align="left">Constraints</h3>
     <p>
         The set of constraints between pointmasses can be represented by the vector of constraint functions \(C\) of the 
@@ -98,7 +108,6 @@
         we consider it a compressive force. The paper notes that brittle material are 8 times stronger under compressive forces 
         compared to extension forces, which we incorporate into our criteria for breaking a constraint.
     </p>
-
     <h3 align="left">Fracture Algorithm</h3>
     <p>
         Solving the optimization problem is done by using a conjugate gradient descent solver provided in the 
@@ -191,6 +200,10 @@
             </ul>
         </p>
     </p>
+    <p>
+        Open Source Code used: <br />
+        <a href="https://solarianprogrammer.com/2012/07/18/perlin-noise-cpp-11/">Perlin Noise in C++11</a>
+    </p>
 
     <h2 align="left" id="contributions">Team Members Contributions</h2>
 
@@ -206,7 +219,7 @@
 
     <p>
         <b>Derek:</b> <br>
-
+        I did a lot of work on the visualization aspect of this project. I came up with and implemented the two wireframe appearance scehemes, and implemented the Blinn-Phong shading (with corrected normal directions) (minus the cracks shown on the surface, Nicole did that!). I consolidated all the data structures for tetrahedra into one file, and did a little work on the main simulate() loop. I imported open-source code for Perlin Noise, and used it to weaken the constraints as described above. I added a fall height parameters to the UI and implemented it in the simulation side. I added the simulation statistics to the bottom of the UI.
     </p>
 
 </div>
