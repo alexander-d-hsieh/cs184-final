@@ -142,6 +142,7 @@ struct BrittleObject {
   VectorXd Q, Q_hat;
   SpMat J, W;
   int shatter_iter;
+  Vector3D center;
 
 };
 

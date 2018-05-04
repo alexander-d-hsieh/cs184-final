@@ -92,6 +92,7 @@ BrittleObject::BrittleObject() {
   this->shatter_iter = 0;
   this->shards = vector<vector<Tetrahedron *>>();
   this->forces = vector<Vector3D>();
+  this->center = Vector3D();
 }
 
 BrittleObject::~BrittleObject() {
@@ -260,20 +261,25 @@ void BrittleObject::explode() {
     }
   }
 
+  for (Tetrahedron *tet : tetrahedra) {
+    this->center += tet->position;
+  }
+  this->center /= tetrahedra.size();
+
   int num_tets = 0;
   for (vector<Tetrahedron*> shard : shards) {
     num_tets += shards.size();
-    Vector3D center = Vector3D();
+    Vector3D shard_center = Vector3D();
     for (Tetrahedron *tet : shard) {
-      center += tet->position;
+      shard_center += tet->position;
       tet->last_position = tet->position;
 
       for (Vertex *v : tet->vertices) {
         v->last_position = v->position;
       }
     }
-    center /= shard.size();
-    forces.push_back(center);
+    shard_center /= shard.size();
+    forces.push_back(shard_center - this->center);
   }
 }
 
