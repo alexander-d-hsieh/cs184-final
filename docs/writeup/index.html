@@ -43,7 +43,7 @@
     1. <a href="#abstract">Abstract</a><br>
     2. <a href="#tech">Technical Approach</a><br>
     3. <a href="#results">Results</a><br>
-    4. <a href="#ref">Resources</a><br>
+    4. <a href="#ref">References</a><br>
     5. <a href="#contributions">Team Member Contributions</a>
 
     <h2 align="left" id="abstract">Abstract</h2>
@@ -63,10 +63,10 @@
     <p>
         <img src="../images/model_diagram.png" align="right" width="300px"/>
         Our 3D object is modeled as a tetrahedron mesh. We generated these meshes using a tetrahedron generator we found online, called
-        TetGen, after using an online program to covert dae files to ply files. We primarily used a bowl.dae file that we found online.
-        Each tetrahedron is comprised of 4 triangles, 4 vertices, and 1 point mass at its center. A tetrahedron has a constraint with
-        each neighboring tetrahedron, that is a tetrahedron it shares a triangle with, and these constraints connect the two tetrahedron’s
-        point masses.
+        TetGen, after using an online program to covert dae files to ply files. Each tetrahedron is comprised of 4 triangles, 4 vertices,
+        and 1 point mass at its center. A tetrahedron has a constraint with each neighboring tetrahedron, that is a tetrahedron it shares
+        a face with, and these constraints connect the two tetrahedron’s point masses. Constraints have a strength, which we will go into
+        more detail about below, and if enough force is applied to the constraint it will break, causing a fracture in the object.
     </p>
 
     <h3 align="left">Visualizations</h3>
@@ -83,6 +83,7 @@
         <p>
             This problem arises because the triangles in the mesh are in random order
         </p>
+
     <h3 align="left">Constraints</h3>
     <p>
         The set of constraints between pointmasses can be represented by the vector of constraint functions \(C\) of the 

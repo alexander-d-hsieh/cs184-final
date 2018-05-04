@@ -81,9 +81,6 @@ Vertex::Vertex(Vertex *v) {
 BrittleObject::BrittleObject() {
   this->constraints = vector<Constraint *>();
   this->tetrahedra = vector<Tetrahedron *>();
-  this->start_position = Vector3D();
-  this->position = Vector3D();
-  this->last_position = Vector3D();
   this->shattered = false;
   this->Q = VectorXd();
   this->Q_hat = VectorXd();

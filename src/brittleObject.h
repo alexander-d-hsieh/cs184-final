@@ -137,7 +137,6 @@ struct BrittleObject {
   vector<Constraint *> constraints;
   vector<vector<Tetrahedron *>> shards;
   vector<Vector3D> forces;
-  Vector3D start_position, position, last_position;
   bool shattered;
   VectorXd Q, Q_hat;
   SpMat J, W;
