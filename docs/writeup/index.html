@@ -51,9 +51,9 @@
         In this project we built a simulator for the fracturing of brittle objects, based off of the paper,
         <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable
             Simulation of the Shattering of Brittle Objects</a>.
-        The final result is a simulator capable of producing realistic fractures in an object when dropped from various heights
-        and angles onto a plane. This paper explains how to model the object, create useful visualizations, implement the fracturing
-        algorithm, create constraint heuristics, and simulate the broken shards moving away from each other so that the shards are visible.
+        This report explains how to model the object, create useful visualizations, implement the fracturing algorithm, create constraint
+        heuristics, and simulate the broken shards moving away from each other so that the shards are visible. The final result is a
+        simulator capable of producing realistic fractures in an object when dropped from various heights and angles onto a plane.
     </p>
 
     <h2 align="left" id="tech">Technical Approach</h2>
@@ -63,8 +63,8 @@
         <img src="../images/model_diagram.png" align="right" width="300px"/>
         Our 3D object is modeled as a tetrahedron mesh. We generated these meshes using a tetrahedron generator we found online, called
         TetGen, after using an online program to covert dae files to ply files. Each tetrahedron is comprised of 4 triangles, 4 vertices,
-        and 1 point mass at its center. A tetrahedron has a constraint with each neighboring tetrahedron, that is a tetrahedron it shares
-        a face with, and these constraints connect the two tetrahedron’s point masses. Constraints have a strength, which we will go into
+        and 1 point mass at its center. A tetrahedron has a constraint with each neighboring tetrahedron (that is a tetrahedron it shares
+        a face with) and these constraints connect the two tetrahedron’s point masses. Constraints have a strength, which we will go into
         more detail about below, and if enough force is applied to the constraint it will break, causing a fracture in the object.
     </p>
 
@@ -255,7 +255,8 @@
         verlet integration code from project 4. I helped work on the heuristic for our constraint strengths and implemented the crack
         growth that occurs at each iteration of our fracture algorithm. I created the ability for the object to be rotated about the
         x, y, and z-axes and added these controls to the GUI. Along with Alex, I worked on getting the object to "explode" after
-        fracturing in order to better see the shards.
+        fracturing in order to better see the shards. I altered Alex's implementation of DFS to make it iterative, and I reimplemented
+        the way we generate our tetrahedron mesh so that they can be easily separated.
     </p>
 
     <p>
