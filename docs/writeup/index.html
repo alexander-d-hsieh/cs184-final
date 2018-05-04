@@ -1,5 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 <head>
     <style>
         body {
@@ -13,6 +14,16 @@
         }
         h1, h2, h3, h4 {
             font-family: 'Source Sans Pro', sans-serif;
+        }
+        p {
+            line-height:24px;
+        }
+        code {
+            padding: 2px 4px;
+            font-size: 130%;
+            color: #c7254e;
+            background-color: #f9f2f4;
+            border-radius: 4px;
         }
     </style>
     <title>CS 184 Shatter Simulator</title>
@@ -45,6 +56,7 @@
     </p>
 
     <h2 align="left" id="tech">Technical Approach</h2>
+
     <h3 align="left">Model</h3>
     <p>
         Our 3D object is modeled as a tetrahedron mesh. Each tetrahedron is comprised of 4 triangles, 4 vertices, and 1 point
@@ -65,8 +77,41 @@
     <h3 align="left">Visualizations</h3>
 
     <h3 align="left">Constraints</h3>
+    <p>
+        The set of constraints between pointmasses can be represented by the vector of constraint functions \(C\) of the 
+        form \(C_i(p_a, p_b) = \left\lVert p_a - p_b \right\rVert - d_i\), which nonzero only if the constraint is broken i.e.
+        the distance between the pointmasses \(p_a, p_b\) are no longer at distance \(d_i\).
+        However, instead of using pointmass displacement as criteria for breaking the constraint, we give the constraint a 
+        maximum strength and calculate the force that the constraint must exert when impact occurs, and if the forces
+         is greater than its strength, it is broken.
+    </p>
+    <p>
+        In the fracturing simulation, we are estimating if the constraint is broken by
+        finding the reaction forces exerted by the pointmasses in response to
+        the impact forces generated when the object hits the ground. We do this by solving
+    </p>
+    <center>$$JWJ^T \lambda = -JWQ$$</center>
+    <center>where \(J = \frac{\partial C }{\partial p}\)</center>
+    <p>
+        Here \(Q\) represents the impact force vector, \(W\) is the square matrix with elementwise inverse of each pointmass on the
+        diagonals, and \(\lambda\) is our unknown.
+    </p>
+    <p>
+        Upon solving for λ, we can find the reaction force vector by finding \(\hat{Q} = J^T\lambda\). At this point, it was
+        unclear to use how the paper derived the forces exerted by the constraints from the vector \(\hat{Q}\). Since this is 
+        a vector of forces acted on the pointmasses, we found it suitable to derive the force exerted by the constraint
+        by projecting the reaction forces of the two pointmasses onto the unit vector of \(p_a - p_b\). If the direction of
+        the two forces both go outward we consider it a tensile force, and if the direction of the two forces both go inward
+        we consider it a compressive force. The paper notes that brittle material are 8 times stronger under compressive forces 
+        compared to extension forces, which we incorporate into our criteria for breaking a constraint.
+    </p>
 
     <h3 align="left">Fracture Algorithm</h3>
+    <p>
+        Solving the optimization problem is done by using a conjugate gradient descent solver provided in the 
+        <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> library.
+
+    </p>
 
     <h3 align="left">"Exploding" the Shards</h3>
     <p>
