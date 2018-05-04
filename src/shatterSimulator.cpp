@@ -226,8 +226,8 @@ void ShatterSimulator::drawWireframeConstraints(GLShader &shader) {
   }
 
   drawConstraints(satisfied_constraints, nanogui::Color(0.6f, 0.6f, 0.6f, 1.f), shader);
-  drawConstraints(broken_constraints, nanogui::Color(0.6f, 0.f, 0.f, 1.f), shader);
-  // drawWireframeTetrahedra(brittle_object->tetrahedra, shader);
+  drawConstraints(broken_constraints, color, shader);
+//   drawWireframeTetrahedra(brittle_object->tetrahedra, shader);
 }
 
 void drawWireframeTrianglesWithColor(
@@ -275,9 +275,9 @@ void ShatterSimulator::drawWireframeCracks(GLShader &shader) {
     }
   }
 
-  drawWireframeTrianglesWithColor(cracked_triangles, color, shader);
   drawWireframeTrianglesWithColor(
       face_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
+  drawWireframeTrianglesWithColor(cracked_triangles, color, shader);
 }
 
 void ShatterSimulator::drawPhong(GLShader &shader) {
@@ -296,40 +296,6 @@ void ShatterSimulator::drawPhong(GLShader &shader) {
         }
       }
     }
-
-    int num_tris = face_triangles.size();
-
-    MatrixXf positions(3, num_tris * 3);
-    MatrixXf normals(3, num_tris * 3);
-
-    Vector3D cp = camera.position();
-
-    for (int i = 0; i < num_tris; i++) {
-      Triangle *tri = face_triangles[i];
-      Vector3D p1 = tri->v1->position;
-      Vector3D p2 = tri->v2->position;
-      Vector3D p3 = tri->v3->position;
-      Vector3D n1 = tri->normal(cp);
-      Vector3D n2 = tri->normal(cp);
-      Vector3D n3 = tri->normal(cp);
-      positions.col(i * 3) << p1.x, p1.y, p1.z;
-      positions.col(i * 3 + 1) << p2.x, p2.y, p2.z;
-      positions.col(i * 3 + 2) << p3.x, p3.y, p3.z;
-      normals.col(i * 3) << n1.x, n1.y, n1.z;
-      normals.col(i * 3 + 1) << n2.x, n2.y, n2.z;
-      normals.col(i * 3 + 2) << n3.x, n3.y, n3.z;
-    }
-
-    drawWireframeTrianglesWithColor(cracked_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
-
-    shader.setUniform("in_color", color);
-    shader.setUniform("eye", Vector3f(cp.x, cp.y, cp.z));
-    shader.setUniform("light", Vector3f(5, 5, 5));
-
-    shader.uploadAttrib("in_position", positions);
-    shader.uploadAttrib("in_normal", normals);
-
-    shader.drawArray(GL_TRIANGLES, 0, num_tris * 3);
   } else {
     for (vector<Tetrahedron *> shard : brittle_object->shards) {
       face_triangles.clear();
@@ -341,77 +307,42 @@ void ShatterSimulator::drawPhong(GLShader &shader) {
           }
         }
       }
-
-      int num_tris = face_triangles.size();
-
-      MatrixXf positions(3, num_tris * 3);
-      MatrixXf normals(3, num_tris * 3);
-
-      Vector3D cp = camera.position();
-
-      for (int i = 0; i < num_tris; i++) {
-        Triangle *tri = face_triangles[i];
-        Vector3D p1 = tri->v1->position;
-        Vector3D p2 = tri->v2->position;
-        Vector3D p3 = tri->v3->position;
-        Vector3D n1 = tri->normal(cp);
-        Vector3D n2 = tri->normal(cp);
-        Vector3D n3 = tri->normal(cp);
-        positions.col(i * 3) << p1.x, p1.y, p1.z;
-        positions.col(i * 3 + 1) << p2.x, p2.y, p2.z;
-        positions.col(i * 3 + 2) << p3.x, p3.y, p3.z;
-        normals.col(i * 3) << n1.x, n1.y, n1.z;
-        normals.col(i * 3 + 1) << n2.x, n2.y, n2.z;
-        normals.col(i * 3 + 2) << n3.x, n3.y, n3.z;
-      }
-
-//      drawWireframeTrianglesWithColor(cracked_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
-      nanogui::Color color = nanogui::Color(((double) rand())/ RAND_MAX, ((double) rand())/ RAND_MAX, ((double) rand())/ RAND_MAX, 1.f);
-
-      shader.setUniform("in_color", color);
-      shader.setUniform("eye", Vector3f(cp.x, cp.y, cp.z));
-      shader.setUniform("light", Vector3f(5, 5, 5));
-
-      shader.uploadAttrib("in_position", positions);
-      shader.uploadAttrib("in_normal", normals);
-
-      shader.drawArray(GL_TRIANGLES, 0, num_tris * 3);
     }
   }
 
-//  int num_tris = face_triangles.size();
-//
-//  MatrixXf positions(3, num_tris * 3);
-//  MatrixXf normals(3, num_tris * 3);
-//
-//  Vector3D cp = camera.position();
-//
-//  for (int i = 0; i < num_tris; i++) {
-//    Triangle *tri = face_triangles[i];
-//    Vector3D p1 = tri->v1->position;
-//    Vector3D p2 = tri->v2->position;
-//    Vector3D p3 = tri->v3->position;
-//    Vector3D n1 = tri->normal(cp);
-//    Vector3D n2 = tri->normal(cp);
-//    Vector3D n3 = tri->normal(cp);
-//    positions.col(i * 3) << p1.x, p1.y, p1.z;
-//    positions.col(i * 3 + 1) << p2.x, p2.y, p2.z;
-//    positions.col(i * 3 + 2) << p3.x, p3.y, p3.z;
-//    normals.col(i * 3) << n1.x, n1.y, n1.z;
-//    normals.col(i * 3 + 1) << n2.x, n2.y, n2.z;
-//    normals.col(i * 3 + 2) << n3.x, n3.y, n3.z;
-//  }
-//
-//  drawWireframeTrianglesWithColor(cracked_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
-//
-//  shader.setUniform("in_color", color);
-//  shader.setUniform("eye", Vector3f(cp.x, cp.y, cp.z));
-//  shader.setUniform("light", Vector3f(5, 5, 5));
-//
-//  shader.uploadAttrib("in_position", positions);
-//  shader.uploadAttrib("in_normal", normals);
-//
-//  shader.drawArray(GL_TRIANGLES, 0, num_tris * 3);
+  int num_tris = face_triangles.size();
+
+  MatrixXf positions(3, num_tris * 3);
+  MatrixXf normals(3, num_tris * 3);
+
+  Vector3D cp = camera.position();
+
+  for (int i = 0; i < num_tris; i++) {
+    Triangle *tri = face_triangles[i];
+    Vector3D p1 = tri->v1->position;
+    Vector3D p2 = tri->v2->position;
+    Vector3D p3 = tri->v3->position;
+    Vector3D n1 = tri->normal(cp);
+    Vector3D n2 = tri->normal(cp);
+    Vector3D n3 = tri->normal(cp);
+    positions.col(i * 3) << p1.x, p1.y, p1.z;
+    positions.col(i * 3 + 1) << p2.x, p2.y, p2.z;
+    positions.col(i * 3 + 2) << p3.x, p3.y, p3.z;
+    normals.col(i * 3) << n1.x, n1.y, n1.z;
+    normals.col(i * 3 + 1) << n2.x, n2.y, n2.z;
+    normals.col(i * 3 + 2) << n3.x, n3.y, n3.z;
+  }
+
+  drawWireframeTrianglesWithColor(cracked_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
+
+  shader.setUniform("in_color", color);
+  shader.setUniform("eye", Vector3f(cp.x, cp.y, cp.z));
+  shader.setUniform("light", Vector3f(5, 5, 5));
+
+  shader.uploadAttrib("in_position", positions);
+  shader.uploadAttrib("in_normal", normals);
+
+  shader.drawArray(GL_TRIANGLES, 0, num_tris * 3);
 }
 
 // ----------------------------------------------------------------------------
