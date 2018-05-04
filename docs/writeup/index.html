@@ -1,5 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 <head>
     <style>
         body {
@@ -13,6 +14,16 @@
         }
         h1, h2, h3, h4 {
             font-family: 'Source Sans Pro', sans-serif;
+        }
+        p {
+            line-height:24px;
+        }
+        code {
+            padding: 2px 4px;
+            font-size: 130%;
+            color: #c7254e;
+            background-color: #f9f2f4;
+            border-radius: 4px;
         }
     </style>
     <title>CS 184 Shatter Simulator</title>
@@ -40,6 +51,31 @@
     
 
     <h2 align="left" id="tech">Technical Approach</h2>
+    <h3>Constraints</h4>
+    <p>
+        The set of constraints between pointmasses can be represented by the vector of constraint functions \(C\) of the 
+        form \(C_i(p_a, p_b) = \left\lVert p_a - p_b \right\rVert - d_i\), which nonzero only if the constraint is broken i.e.
+        the distance between the pointmasses \(p_a, p_b\) are no longer at distance \(d_i\).
+        However, instead of using pointmass displacement as criteria for breaking the constraint, we give the constraint a 
+        maximum strength and calculate the force the constraint must exert when impace occurs, and if it is greater
+        than the strength, we consider it broken.
+    </p>
+    <p>
+        In the fracturing simulation, we are estimating if the constraint is broken by
+        finding the reaction forces applied by the pointmasses in response to
+        the impact forces generated when the object hits the ground. We do this by solving this optimization problem
+    </p>
+    <center>$$JWJ^T \lambda = -JWQ$$</center>
+    <center>where \(J = \frac{\partial C }{\partial p}\)</center>
+    <p>
+        Here \(Q\) represents the impact force vector, \(W\) is the square matrix with elementwise inverse of each pointmass on the
+        diagonals. And \(\lambda\) is our unknown vector.
+    </p>
+    <p>
+        Upon solving for λ, we can find the reaction force vector by finding \(\hat{Q} = J^T\lambda\). Since this is 
+        a vector of forces acted on the pointmasses, we project the forces to the vector \(p_a - p_b\) to find the magnitude 
+        of the force that the constraint is exerting in the direction between the two pointmasses. 
+    </p>
 
 
     <h2 align="left" id="results">Results</h2>
