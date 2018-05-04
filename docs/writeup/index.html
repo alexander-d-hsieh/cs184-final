@@ -29,26 +29,77 @@
 
 <div>
     <h2 align="left">Table of Contents</h2>
-    <a href="#abstract">Abstract</a><br>
-    <a href="#tech">Technical Approach</a><br>
-    <a href="#results">Results</a><br>
-    <a href="#ref">Resources</a><br>
-    <a href="#contributions">Team Member Contributions</a>
+    1. <a href="#abstract">Abstract</a><br>
+    2. <a href="#tech">Technical Approach</a><br>
+    3. <a href="#results">Results</a><br>
+    4. <a href="#ref">Resources</a><br>
+    5. <a href="#contributions">Team Member Contributions</a>
 
     <h2 align="left" id="abstract">Abstract</h2>
-
-    
+    <p>
+        In this project we built a simulator for the fracturing of brittle objects, based off of the paper,
+        <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable
+            Simulation of the Shattering of Brittle Objects</a>.
+        The final result is a simulator capable of producing realistic fractures in an object when dropped from various heights
+        and angles onto a plane. This project is a real-time simulator written with OpenGL in c++.
+    </p>
 
     <h2 align="left" id="tech">Technical Approach</h2>
+    <h3 align="left">Model</h3>
+    <p>
+        Our 3D object is modeled as a tetrahedron mesh. Each tetrahedron is comprised of 4 triangles, 4 vertices, and 1 point
+        mass at its center. A tetrahedron has a constraint with each neighboring tetrahedron, that is a tetrahedron it shares
+        a triangle with, and these constraints are between the two tetrahedron’s point masses.
+    </p>
+    <div align="center">
+        <table style="width=100%">
+            <tr>
+                <td>
+                    <img src="../images/model_diagram.png" align="middle" width="400px"/>
+                    <figcaption align="middle"></figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <h3 align="left">Visualizations</h3>
+
+    <h3 align="left">Constraints</h3>
+
+    <h3 align="left">Fracture Algorithm</h3>
+
+    <h3 align="left">"Exploding" the Shards</h3>
+    <p>
+        In order to better see
+    </p>
 
 
     <h2 align="left" id="results">Results</h2>
+    <div align="center">
+        <table style="width=100%">
+            <tr>
+                <td>
+                    <img src="../images/constraint_cracks.png" align="middle" height="250px"/>
+                    <figcaption align="middle"></figcaption>
+                </td>
+                <td>
+                    <img src="../images/tetra_cracks.png" align="middle" height="250px"/>
+                    <figcaption align="middle"></figcaption>
+                </td>
+                <td>
+                    <img src="../images/shaded_cracks.png" align="middle" height="250px"/>
+                    <figcaption align="middle"></figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
 
 
-    <h2 align="left" id="ref">Resources</h2>
+    <h2 align="left" id="ref">References</h2>
     <p>
         Papers:<br>
-        <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable Simulation of the Shattering of Brittle Objects</a>
+        <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable Simulation
+            of the Shattering of Brittle Objects</a>
     </p>
 
     <h2 align="left" id="contributions">Team Members Contributions</h2>
