@@ -59,20 +59,13 @@
 
     <h3 align="left">Model</h3>
     <p>
-        Our 3D object is modeled as a tetrahedron mesh. Each tetrahedron is comprised of 4 triangles, 4 vertices, and 1 point
+        <img src="../images/model_diagram.png" align="right" width="400px"/>
+        Our 3D object is modeled as a tetrahedron mesh. We generated these meshes using a tetrahedron generator we found online, called
+        tetgen, after using an online program to covert dae files to ply files. We used the teapot.dae file from previous projects and
+        also found a bowl.dae file online. Each tetrahedron is comprised of 4 triangles, 4 vertices, and 1 point
         mass at its center. A tetrahedron has a constraint with each neighboring tetrahedron, that is a tetrahedron it shares
-        a triangle with, and these constraints are between the two tetrahedron’s point masses.
+        a triangle with, and these constraints connect the two tetrahedron’s point masses.
     </p>
-    <div align="center">
-        <table style="width=100%">
-            <tr>
-                <td>
-                    <img src="../images/model_diagram.png" align="middle" width="400px"/>
-                    <figcaption align="middle"></figcaption>
-                </td>
-            </tr>
-        </table>
-    </div>
 
     <h3 align="left">Visualizations</h3>
 
@@ -161,10 +154,42 @@
 
 
     <h2 align="left" id="ref">References</h2>
+
+    <h3 align="left">Project Resources</h3>
     <p>
-        Papers:<br>
-        <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable Simulation
-            of the Shattering of Brittle Objects</a>
+        Papers:
+        <p>
+            <ul>
+                <li>
+                    <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable
+                        Simulation of the Shattering of Brittle Objects</a>
+                </li>
+            </ul>
+        </p>
+
+        Graphics Libraries:
+        <p>
+            <ul>
+                <li>
+                    OpenGL
+                </li>
+                <li>
+                    <a href="http://wias-berlin.de/software/index.jsp?id=TetGen&lang=1">TetGen</a> for tetrahedron mesh generation<br>
+                </li>
+                <li>
+                    <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> for linear algebra<br>
+                </li>
+            </ul>
+        </p>
+
+        Architecture:
+        <p>
+            <ul>
+                <li>
+                    Built off of Project 4 Clothsim
+                </li>
+            </ul>
+        </p>
     </p>
 
     <h2 align="left" id="contributions">Team Members Contributions</h2>
