@@ -76,7 +76,6 @@ Vertex::Vertex(Vertex *v) {
   this->last_position = v->last_position;
   this->start_position = v->start_position;
   this->id = v->id;
-  this->updated = false;
 }
 
 BrittleObject::BrittleObject() {
@@ -154,11 +153,6 @@ Vector3D moveObject(
   // Compute total force acting on each point mass.
   for (Tetrahedron *tet : tetrahedra) {
     tet->forces = external_force * tet->mass;
-
-//    // reset all vertex update booleans to false
-//    for (Vertex *v : tet->vertices) {
-//      v->updated = false;
-//    }
   }
 
   // Verlet integration to compute new point mass positions
@@ -176,17 +170,14 @@ Vector3D moveObject(
 
     // update vertices
     for (Vertex *v : tet->vertices) {
-//      if (!v->updated) {
-        Vector3D v_dir = v->position - v->last_position;
-        Vector3D new_v_position = 
-            v->position + (1.0 - DAMPING_FACTOR) * v_dir + total_acc * pow(delta_t, 2);
-        v->last_position = v->position;
-        v->position = new_v_position;
-        if (v->position.y < lowest_point.y) {
-          lowest_point = v->position;
-        }
-//        v->updated = true;
-//      }
+      Vector3D v_dir = v->position - v->last_position;
+      Vector3D new_v_position =
+          v->position + (1.0 - DAMPING_FACTOR) * v_dir + total_acc * pow(delta_t, 2);
+      v->last_position = v->position;
+      v->position = new_v_position;
+      if (v->position.y < lowest_point.y) {
+        lowest_point = v->position;
+      }
     }
   }
   return lowest_point;
@@ -227,7 +218,6 @@ void BrittleObject::simulate(double frames_per_sec, double simulation_steps, Bri
       vector<Vector3D> force = {forces[i]};
       moveObject(delta_t, op, force, shards[i]);
     }
-//  }
   } else {
     for (int i = 0; i < shards.size(); i++) {
       vector<Vector3D> force = {forces[i]};
@@ -270,15 +260,20 @@ void BrittleObject::explode() {
     }
   }
 
+  int num_tets = 0;
   for (vector<Tetrahedron*> shard : shards) {
+    num_tets += shards.size();
     Vector3D center = Vector3D();
     for (Tetrahedron *tet : shard) {
       center += tet->position;
       tet->last_position = tet->position;
+
+      for (Vertex *v : tet->vertices) {
+        v->last_position = v->position;
+      }
     }
     center /= shard.size();
     forces.push_back(center);
-//    cout << "center force: " << center << "\n";
   }
 }
 
@@ -288,11 +283,6 @@ void BrittleObject::reset(BrittleObjectParameters *op) {
   Matrix3x3 z_rotate = rotate_z_axis(op->rotation.z);
   Matrix3x3 rotation = x_rotate * y_rotate * z_rotate;
   Vector3D height_additive (0., op->fall_height, 0.);
-//  for (Tetrahedron *tet : tetrahedra) {
-//    for (Vertex *v : tet->vertices) {
-//      v->updated = false;
-//    }
-//  }
   for (Tetrahedron *tet : tetrahedra) {
     tet->position = (rotation * tet->start_position) + height_additive;
     tet->last_position = (rotation * tet->start_position) + height_additive;
@@ -300,11 +290,8 @@ void BrittleObject::reset(BrittleObjectParameters *op) {
       if (v->id == 240) {
         cout << "here\n";
       }
-//      if (!v->updated) {
-        v->position = (rotation * v->start_position) + height_additive;
-        v->last_position = (rotation * v->start_position) + height_additive;
-//        v->updated = true;
-//      }
+      v->position = (rotation * v->start_position) + height_additive;
+      v->last_position = (rotation * v->start_position) + height_additive;
     }
   }
 

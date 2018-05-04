@@ -252,6 +252,10 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         lines++;
         vector<uint64_t> vec = vector<uint64_t>();
         Triangle *t1, *t2, *t3, *t4;
+        Vertex *vertex1 = new Vertex(vertices[v1]);
+        Vertex *vertex2 = new Vertex(vertices[v2]);
+        Vertex *vertex3 = new Vertex(vertices[v3]);
+        Vertex *vertex4 = new Vertex(vertices[v4]);
 
         vec.push_back(v1);
         vec.push_back(v2);
@@ -259,14 +263,14 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         std::sort( vec.begin(), vec.end() );
         uint64_t hash = (((vec[0] << 20) + vec[1]) << 20) + vec[2];
         if (triangle_map.find(hash) == triangle_map.end()) {
-          t1 = new Triangle(new Vertex(vertices[v1]), new Vertex(vertices[v2]), new Vertex(vertices[v3]), false);
+          t1 = new Triangle(vertex1, vertex2, vertex3, false);
           t1->pair = nullptr;
           t1->c = nullptr;
           triangle_map[hash] = t1;
           all_triangles.push_back(t1);
         } else {
           Triangle *pair = triangle_map[hash];
-          t1 = new Triangle(new Vertex(vertices[v1]), new Vertex(vertices[v2]), new Vertex(vertices[v3]), false);
+          t1 = new Triangle(vertex1, vertex2, vertex3, false);
           t1->pair = pair;
           t1->c = nullptr;
           pair->pair = t1;
@@ -280,14 +284,14 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         std::sort( vec.begin(), vec.end() );
         hash = (((vec[0] << 20) + vec[1]) << 20) + vec[2];
         if (triangle_map.find(hash) == triangle_map.end()) {
-          t2 = new Triangle(new Vertex(vertices[v1]), new Vertex(vertices[v2]), new Vertex(vertices[v4]), false);
+          t2 = new Triangle(vertex1, vertex2, vertex4, false);
           t2->pair = nullptr;
           t2->c = nullptr;
           triangle_map[hash] = t2;
           all_triangles.push_back(t2);
         } else {
           Triangle *pair = triangle_map[hash];
-          t2 = new Triangle(new Vertex(vertices[v1]), new Vertex(vertices[v2]), new Vertex(vertices[v4]), false);
+          t2 = new Triangle(vertex1, vertex2, vertex4, false);
           t2->pair = pair;
           t2->c = nullptr;
           pair->pair = t2;
@@ -301,14 +305,14 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         std::sort( vec.begin(), vec.end() );
         hash = (((vec[0] << 20) + vec[1]) << 20) + vec[2];
         if (triangle_map.find(hash) == triangle_map.end()) {
-          t3 = new Triangle(new Vertex(vertices[v1]), new Vertex(vertices[v3]), new Vertex(vertices[v4]), false);
+          t3 = new Triangle(vertex1, vertex3, vertex4, false);
           t3->pair = nullptr;
           t3->c = nullptr;
           triangle_map[hash] = t3;
           all_triangles.push_back(t3);
         } else {
           Triangle *pair = triangle_map[hash];
-          t3 = new Triangle(new Vertex(vertices[v1]), new Vertex(vertices[v3]), new Vertex(vertices[v4]), false);
+          t3 = new Triangle(vertex1, vertex3, vertex4, false);
           t3->pair = pair;
           t3->c = nullptr;
           pair->pair = t3;
@@ -322,14 +326,14 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
         std::sort( vec.begin(), vec.end() );
         hash = (((vec[0] << 20) + vec[1]) << 20) + vec[2];
         if (triangle_map.find(hash) == triangle_map.end()) {
-          t4 = new Triangle(new Vertex(vertices[v2]), new Vertex(vertices[v3]), new Vertex(vertices[v4]), false);
+          t4 = new Triangle(vertex2, vertex3, vertex4, false);
           t4->pair = nullptr;
           t4->c = nullptr;
           triangle_map[hash] = t4;
           all_triangles.push_back(t4);
         } else {
           Triangle *pair = triangle_map[hash];
-          t4 = new Triangle(new Vertex(vertices[v2]), new Vertex(vertices[v3]), new Vertex(vertices[v4]), false);
+          t4 = new Triangle(vertex2, vertex3, vertex4, false);
           t4->pair = pair;
           t4->c = nullptr;
           pair->pair = t4;
@@ -347,10 +351,8 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
 
       double min_con = 999.0;
       double max_con = 0.0;
-      int faces = 0;
       for (Triangle *triangle: all_triangles) {
         if (triangle->pair == nullptr) {
-          faces++;
           triangle->face = true;
         } else {
           if (triangle->c == nullptr) {
@@ -372,7 +374,6 @@ void loadObjectsFromFile(string filename, BrittleObject *brittleObject, BrittleO
           }
         }
       }
-      cout << "num faces: " << faces << endl;
 
       for (Vertex * v : vertices) {
         free(v);

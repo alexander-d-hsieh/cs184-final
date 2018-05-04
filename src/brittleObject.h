@@ -28,14 +28,13 @@ class Constraint;
 class Vertex {
 public:
   Vertex(double x, double y, double z, int id) 
-      : position(x, y, z), last_position(x, y, z), start_position(x, y, z), id(id), updated(false) {}
+      : position(x, y, z), last_position(x, y, z), start_position(x, y, z), id(id) {}
   Vertex(Vertex *v);
 
   Vector3D position;
   Vector3D last_position;
   Vector3D start_position;
   int id;
-  bool updated;
 };
 
 class Triangle {

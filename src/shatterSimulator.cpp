@@ -226,7 +226,9 @@ void ShatterSimulator::drawWireframeConstraints(GLShader &shader) {
   }
 
   drawConstraints(satisfied_constraints, nanogui::Color(0.6f, 0.6f, 0.6f, 1.f), shader);
-  drawConstraints(broken_constraints, color, shader);
+  if (brittle_object->shards.size() == 0) {
+    drawConstraints(broken_constraints, color, shader);
+  }
 //   drawWireframeTetrahedra(brittle_object->tetrahedra, shader);
 }
 
@@ -277,35 +279,23 @@ void ShatterSimulator::drawWireframeCracks(GLShader &shader) {
 
   drawWireframeTrianglesWithColor(
       face_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
-  drawWireframeTrianglesWithColor(cracked_triangles, color, shader);
+  if (brittle_object->shards.size() == 0) {
+    drawWireframeTrianglesWithColor(cracked_triangles, color, shader);
+  }
 }
 
 void ShatterSimulator::drawPhong(GLShader &shader) {
   vector<Triangle *> face_triangles;
   vector<Triangle *> cracked_triangles;
 
-  if (brittle_object->shards.size() == 0) {
-    for (Tetrahedron *tetra : brittle_object->tetrahedra) {
-      for (int ti = 0; ti < 4; ti++) {
-        Triangle *tri = tetra->triangles[ti];
-        if (tri->face) {
-          face_triangles.push_back(tri);
-        }
-        if (tri->c != NULL && tri->c->broken) {
-          cracked_triangles.push_back(tri);
-        }
+  for (Tetrahedron *tetra : brittle_object->tetrahedra) {
+    for (int ti = 0; ti < 4; ti++) {
+      Triangle *tri = tetra->triangles[ti];
+      if (tri->face) {
+        face_triangles.push_back(tri);
       }
-    }
-  } else {
-    for (vector<Tetrahedron *> shard : brittle_object->shards) {
-      face_triangles.clear();
-      for (Tetrahedron *tetra : shard) {
-        for (int ti = 0; ti < 4; ti++) {
-          Triangle *tri = tetra->triangles[ti];
-          if (tri->face) {
-            face_triangles.push_back(tri);
-          }
-        }
+      if (tri->c != NULL && tri->c->broken) {
+        cracked_triangles.push_back(tri);
       }
     }
   }
@@ -314,7 +304,6 @@ void ShatterSimulator::drawPhong(GLShader &shader) {
 
   MatrixXf positions(3, num_tris * 3);
   MatrixXf normals(3, num_tris * 3);
-
   Vector3D cp = camera.position();
 
   for (int i = 0; i < num_tris; i++) {
@@ -333,7 +322,10 @@ void ShatterSimulator::drawPhong(GLShader &shader) {
     normals.col(i * 3 + 2) << n3.x, n3.y, n3.z;
   }
 
-  drawWireframeTrianglesWithColor(cracked_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
+  if (brittle_object->shards.size() == 0) {
+    drawWireframeTrianglesWithColor(cracked_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
+  }
+
 
   shader.setUniform("in_color", color);
   shader.setUniform("eye", Vector3f(cp.x, cp.y, cp.z));
