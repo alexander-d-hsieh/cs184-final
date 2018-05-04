@@ -82,27 +82,36 @@
         form \(C_i(p_a, p_b) = \left\lVert p_a - p_b \right\rVert - d_i\), which nonzero only if the constraint is broken i.e.
         the distance between the pointmasses \(p_a, p_b\) are no longer at distance \(d_i\).
         However, instead of using pointmass displacement as criteria for breaking the constraint, we give the constraint a 
-        maximum strength and calculate the force the constraint must exert when impace occurs, and if it is greater
-        than the strength, we consider it broken.
+        maximum strength and calculate the force that the constraint must exert when impact occurs, and if the forces
+         is greater than its strength, it is broken.
     </p>
     <p>
         In the fracturing simulation, we are estimating if the constraint is broken by
-        finding the reaction forces applied by the pointmasses in response to
-        the impact forces generated when the object hits the ground. We do this by solving this optimization problem
+        finding the reaction forces exerted by the pointmasses in response to
+        the impact forces generated when the object hits the ground. We do this by solving
     </p>
     <center>$$JWJ^T \lambda = -JWQ$$</center>
     <center>where \(J = \frac{\partial C }{\partial p}\)</center>
     <p>
         Here \(Q\) represents the impact force vector, \(W\) is the square matrix with elementwise inverse of each pointmass on the
-        diagonals. And \(\lambda\) is our unknown vector.
+        diagonals, and \(\lambda\) is our unknown.
     </p>
     <p>
-        Upon solving for λ, we can find the reaction force vector by finding \(\hat{Q} = J^T\lambda\). Since this is 
-        a vector of forces acted on the pointmasses, we project the forces to the vector \(p_a - p_b\) to find the magnitude 
-        of the force that the constraint is exerting in the direction between the two pointmasses. 
+        Upon solving for λ, we can find the reaction force vector by finding \(\hat{Q} = J^T\lambda\). At this point, it was
+        unclear to use how the paper derived the forces exerted by the constraints from the vector \(\hat{Q}\). Since this is 
+        a vector of forces acted on the pointmasses, we found it suitable to derive the force exerted by the constraint
+        by projecting the reaction forces of the two pointmasses onto the unit vector of \(p_a - p_b\). If the direction of
+        the two forces both go outward we consider it a tensile force, and if the direction of the two forces both go inward
+        we consider it a compressive force. The paper notes that brittle material are 8 times stronger under compressive forces 
+        compared to extension forces, which we incorporate into our criteria for breaking a constraint.
     </p>
 
     <h3 align="left">Fracture Algorithm</h3>
+    <p>
+        Solving the optimization problem is done by using a conjugate gradient descent solver provided in the 
+        <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> library.
+
+    </p>
 
     <h3 align="left">"Exploding" the Shards</h3>
     <p>
