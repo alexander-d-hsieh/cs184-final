@@ -1,5 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 <head>
     <style>
         body {
@@ -13,6 +14,16 @@
         }
         h1, h2, h3, h4 {
             font-family: 'Source Sans Pro', sans-serif;
+        }
+        p {
+            line-height:24px;
+        }
+        code {
+            padding: 2px 4px;
+            font-size: 130%;
+            color: #c7254e;
+            background-color: #f9f2f4;
+            border-radius: 4px;
         }
     </style>
     <title>CS 184 Shatter Simulator</title>
@@ -29,37 +40,120 @@
 
 <div>
     <h2 align="left">Table of Contents</h2>
-    <a href="#abstract">Abstract</a><br>
-    <a href="#tech">Technical Approach</a><br>
-    <a href="#results">Results</a><br>
-    <a href="#ref">Resources</a><br>
-    <a href="#contributions">Team Member Contributions</a>
+    1. <a href="#abstract">Abstract</a><br>
+    2. <a href="#tech">Technical Approach</a><br>
+    3. <a href="#results">Results</a><br>
+    4. <a href="#ref">Resources</a><br>
+    5. <a href="#contributions">Team Member Contributions</a>
 
     <h2 align="left" id="abstract">Abstract</h2>
-
-    
+    <p>
+        In this project we built a simulator for the fracturing of brittle objects, based off of the paper,
+        <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable
+            Simulation of the Shattering of Brittle Objects</a>.
+        The final result is a simulator capable of producing realistic fractures in an object when dropped from various heights
+        and angles onto a plane. This project is a real-time simulator written with OpenGL in c++.
+    </p>
 
     <h2 align="left" id="tech">Technical Approach</h2>
     <h3 align="left">Constraint Heuristics</h3>
 
-    <h3 align="left">Visualizations</h3>
+    <h3 align="left">Model</h3>
     <p>
-        The original goal was to shatter the teapot, which was modeled as having a solid center. This created a challenge of visualizing what constraints were broken since a strong majority of constraints were on the inside of the mesh. The first approach was to use Blinn-Phong shading with 50% opacity for only surface trianges. However, this did not work as expected, as demonstrated by the image below.
+        Our 3D object is modeled as a tetrahedron mesh. Each tetrahedron is comprised of 4 triangles, 4 vertices, and 1 point
+        mass at its center. A tetrahedron has a constraint with each neighboring tetrahedron, that is a tetrahedron it shares
+        a triangle with, and these constraints are between the two tetrahedron’s point masses.
     </p>
-    <div align="middle">
-        <img src="../images/transparent.png" width="400px" />
-        <figcaption>50% opacity Blinn-Phong shading</figcaption>
+    <div align="center">
+        <table style="width=100%">
+            <tr>
+                <td>
+                    <img src="../images/model_diagram.png" align="middle" width="400px"/>
+                    <figcaption align="middle"></figcaption>
+                </td>
+            </tr>
+        </table>
     </div>
+
+    <h3 align="left">Visualizations</h3>
+    <h3 align="left">Visualizations</h3>
+        <p>
+            The original goal was to shatter the teapot, which was modeled as having a solid center. This created a challenge of visualizing what constraints were broken since a strong majority of constraints were on the inside of the mesh. The first approach was to use Blinn-Phong shading with 50% opacity for only surface trianges. However, this did not work as expected, as demonstrated by the image below.
+        </p>
+        <div align="middle">
+            <img src="../images/transparent.png" width="400px" />
+            <figcaption>50% opacity Blinn-Phong shading</figcaption>
+        </div>
+        <p>
+            This problem arises because the triangles in the mesh are in random order
+    <h3 align="left">Constraints</h3>
     <p>
-        This problem arises because the triangles in the mesh are in random order
+        The set of constraints between pointmasses can be represented by the vector of constraint functions \(C\) of the 
+        form \(C_i(p_a, p_b) = \left\lVert p_a - p_b \right\rVert - d_i\), which nonzero only if the constraint is broken i.e.
+        the distance between the pointmasses \(p_a, p_b\) are no longer at distance \(d_i\).
+        However, instead of using pointmass displacement as criteria for breaking the constraint, we give the constraint a 
+        maximum strength and calculate the force that the constraint must exert when impact occurs, and if the forces
+         is greater than its strength, it is broken.
+    </p>
+    <p>
+        In the fracturing simulation, we are estimating if the constraint is broken by
+        finding the reaction forces exerted by the pointmasses in response to
+        the impact forces generated when the object hits the ground. We do this by solving
+    </p>
+    <center>$$JWJ^T \lambda = -JWQ$$</center>
+    <center>where \(J = \frac{\partial C }{\partial p}\)</center>
+    <p>
+        Here \(Q\) represents the impact force vector, \(W\) is the square matrix with elementwise inverse of each pointmass on the
+        diagonals, and \(\lambda\) is our unknown.
+    </p>
+    <p>
+        Upon solving for λ, we can find the reaction force vector by finding \(\hat{Q} = J^T\lambda\). At this point, it was
+        unclear to use how the paper derived the forces exerted by the constraints from the vector \(\hat{Q}\). Since this is 
+        a vector of forces acted on the pointmasses, we found it suitable to derive the force exerted by the constraint
+        by projecting the reaction forces of the two pointmasses onto the unit vector of \(p_a - p_b\). If the direction of
+        the two forces both go outward we consider it a tensile force, and if the direction of the two forces both go inward
+        we consider it a compressive force. The paper notes that brittle material are 8 times stronger under compressive forces 
+        compared to extension forces, which we incorporate into our criteria for breaking a constraint.
+    </p>
+    <h3 align="left">Fracture Algorithm</h3>
+    <p>
+        Solving the optimization problem is done by using a conjugate gradient descent solver provided in the 
+        <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> library.
+
+    </p>
+
+    <h3 align="left">"Exploding" the Shards</h3>
+    <p>
+        In order to better see
+    </p>
+
 
     <h2 align="left" id="results">Results</h2>
+    <div align="center">
+        <table style="width=100%">
+            <tr>
+                <td>
+                    <img src="../images/constraint_cracks.png" align="middle" height="250px"/>
+                    <figcaption align="middle"></figcaption>
+                </td>
+                <td>
+                    <img src="../images/tetra_cracks.png" align="middle" height="250px"/>
+                    <figcaption align="middle"></figcaption>
+                </td>
+                <td>
+                    <img src="../images/shaded_cracks.png" align="middle" height="250px"/>
+                    <figcaption align="middle"></figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
 
 
-    <h2 align="left" id="ref">Resources</h2>
+    <h2 align="left" id="ref">References</h2>
     <p>
-        Papers:<br />
-        <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable Simulation of the Shattering of Brittle Objects</a>
+        Papers:<br>
+        <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable Simulation
+            of the Shattering of Brittle Objects</a>
     </p>
     <p>
         Open Source Code used: <br />

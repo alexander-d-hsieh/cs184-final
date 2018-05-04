@@ -219,15 +219,21 @@ void ShatterSimulator::drawWireframeConstraints(GLShader &shader) {
   vector<Constraint *> broken_constraints;
   for (Constraint *c : brittle_object->constraints) {
     if (c->broken) {
-      broken_constraints.push_back(c);
+      Tetrahedron *a = c->tet_a;
+      Tetrahedron *b = c->tet_b;
+      if (a->shard == -1) {
+        broken_constraints.push_back(c);
+      } else if (a->shard == b->shard) {
+        // Still visualize cracks if neighbor is not in a different shard
+        broken_constraints.push_back(c);
+      }
     } else {
       satisfied_constraints.push_back(c);
     }
   }
 
   drawConstraints(satisfied_constraints, nanogui::Color(0.6f, 0.6f, 0.6f, 1.f), shader);
-  drawConstraints(broken_constraints, nanogui::Color(0.6f, 0.f, 0.f, 1.f), shader);
-  // drawWireframeTetrahedra(brittle_object->tetrahedra, shader);
+  drawConstraints(broken_constraints, color, shader);
 }
 
 void drawWireframeTrianglesWithColor(
@@ -265,19 +271,24 @@ void ShatterSimulator::drawWireframeCracks(GLShader &shader) {
   for (Tetrahedron *tetra : brittle_object->tetrahedra) {
     for (int ti = 0; ti < 4; ti++) {
       Triangle *tri = tetra->triangles[ti];
-      
-      if (tri->c != nullptr && tri->c->broken) {
-        cracked_triangles.push_back(tri);
-      }
+
       if (tri->face) {
         face_triangles.push_back(tri);
+      } else if (tri->c->broken) {
+        Tetrahedron *neighbor = tri->pair->tet;
+        if (tetra->shard == -1) {
+          cracked_triangles.push_back(tri);
+        } else if (tetra->shard == neighbor->shard) {
+          // Still visualize cracks if neighbor is not in a different shard
+          cracked_triangles.push_back(tri);
+        }
       }
     }
   }
 
-  drawWireframeTrianglesWithColor(cracked_triangles, color, shader);
   drawWireframeTrianglesWithColor(
       face_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
+  drawWireframeTrianglesWithColor(cracked_triangles, color, shader);
 }
 
 void ShatterSimulator::drawPhong(GLShader &shader) {
@@ -289,18 +300,24 @@ void ShatterSimulator::drawPhong(GLShader &shader) {
       Triangle *tri = tetra->triangles[ti];
       if (tri->face) {
         face_triangles.push_back(tri);
-      }
-      if (tri->c != nullptr && tri->c->broken) {
-        cracked_triangles.push_back(tri);
+      } else if (tri->c->broken) {
+        Tetrahedron *neighbor = tri->pair->tet;
+        if (tetra->shard == -1) {
+          cracked_triangles.push_back(tri);
+        } else if (tetra->shard == neighbor->shard) {
+          // Still visualize cracks if neighbor is not in a different shard
+          cracked_triangles.push_back(tri);
+        }
       }
     }
   }
+
+  drawWireframeTrianglesWithColor(cracked_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
 
   int num_tris = face_triangles.size();
 
   MatrixXf positions(3, num_tris * 3);
   MatrixXf normals(3, num_tris * 3);
-
   Vector3D cp = camera.position();
 
   for (int i = 0; i < num_tris; i++) {
@@ -318,8 +335,6 @@ void ShatterSimulator::drawPhong(GLShader &shader) {
     normals.col(i * 3 + 1) << n2.x, n2.y, n2.z;
     normals.col(i * 3 + 2) << n3.x, n3.y, n3.z;
   }
-
-  drawWireframeTrianglesWithColor(cracked_triangles, nanogui::Color(1.f, 1.f, 1.f, 1.f), shader);
 
   shader.setUniform("in_color", color);
   shader.setUniform("eye", Vector3f(cp.x, cp.y, cp.z));
