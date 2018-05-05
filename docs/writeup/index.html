@@ -63,7 +63,7 @@
         <img src="../images/model_diagram.png" align="right" width="300px"/>
         Our 3D object is modeled as a tetrahedron mesh. We generated these meshes using a tetrahedron generator we found online, called
         TetGen, after using an online program to covert dae files to ply files. Each tetrahedron is comprised of 4 triangles, 4 vertices,
-        and 1 point mass at its center. A tetrahedron has a constraint with each neighboring tetrahedron (that is a tetrahedron it shares
+        and 1 point mass at its center. A tetrahedron has a constraint with each neighboring tetrahedron (a tetrahedron it shares
         a face with) and these constraints connect the two tetrahedron’s point masses. Constraints have a strength, which we will go into
         more detail about below, and if enough force is applied to the constraint it will break, causing a fracture in the object.
     </p>
@@ -86,15 +86,50 @@
     <h3 align="left">Constraints</h3>
     <p>
         The set of constraints between pointmasses can be represented by the vector of constraint functions \(C\) of the 
-        form \(C_i(p_a, p_b) = \left\lVert p_a - p_b \right\rVert - d_i\), which nonzero only if the constraint is broken i.e.
-        the distance between the pointmasses \(p_a, p_b\) are no longer at distance \(d_i\).
+        form \(C_i(p_a, p_b) = \left\lVert p_a - p_b \right\rVert - d_i\), which is nonzero only if the constraint is broken (i.e.
+        the distance between the pointmasses \(p_a, p_b\) are no longer at distance \(d_i\)).
         However, instead of using pointmass displacement as criteria for breaking the constraint, we give the constraint a 
-        maximum strength and calculate the force that the constraint must exert when impact occurs, and if the forces
-         is greater than its strength, it is broken.
+        maximum strength and calculate the force that the constraint must exert when impact occurs, and if the force
+        is greater than its strength, it is broken.
     </p>
     <h4 align="left">Constraint Heuristics</h4>
+    <p>
+        Our heuristic for determining the strength of a constraint is based primarily on geometry in order for our results to be physically
+        realistic. The strength of the constraint scales linearly with both the area of the shared triangle faced between the tetrahedra and
+        the volumes of the two tetrahedra. The logic behind this is that the bigger the tetrahedra and the area of the surface that connects
+        them, the less likely that surface is to crack. The geometric heuristic we ultimately went with is the following:
+        <center>$$s^i = 0.1 (A_t + 0.5 (V_{a} + V_{b}))$$</center>
+        where \(s^i\) is the strength of constraint \(i\), \(A_t\) is the area of the shared triangle face, and \(V_a\) and \(V_b\) are
+        the volumes of the two tetrahedra.
+    </p>
 
     <h4 align="left">Crack Growth via Constraint Weakening</h4>
+    <p>
+        In order to promote crack propagation throughout the object, we weaken constraints adjacent to newly broken constraints. As the
+        paper explains, it takes much less energy to lengthen an existing crack than it does to create a new crack, and
+        therefore, when a constraint is broken, it's neighboring constraints should be weakened so that they may be more easily broken
+        in the next iteration of the fracturing algorithm. Our constraints were weakened according to the following equation given in the
+        paper, which is considered aggressive crack growth:
+        <center>$$s^i_{new} = s^i_{old}(0.5005 - 0.4995 \text{sin}(4\theta + \frac{\pi}{2})$$</center>
+        where \(s^i\) is the constraint strength and \(\theta\) is the angle between the broken constraint and the constraint to be
+        weakened. The paper specifies only weakening constraints whose angle with the broken constraint is between \(\frac{\pi}{2}\) and
+        \(-\frac{\pi}{2}\), however, we found our results to improve when we weakened all neighboring constraints regardless of the size
+        of the angle. In the images below you can see the difference between when crack growth is implemented versus when it is not.
+    </p>
+    <div align="center">
+        <table style="width=100%">
+            <tr>
+                <td>
+                    <img src="../images/constraints_nocrackgrowth.png" width="400px" />
+                    <figcaption>No crack growth implemented.</figcaption>
+                </td>
+                <td>
+                    <img src="../images/constraints_crackgrowth.png" width="400px" />
+                    <figcaption>With crack growth implemented.</figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
 
     <h3 align="left">Fracture Algorithm</h3>
     <p>
@@ -106,7 +141,8 @@
     <center>where \(J = \frac{\partial C }{\partial p}\)</center>
     <p>
         Here \(Q\) represents the impact force vector, \(W\) is the square matrix with elementwise inverse of each pointmass on the
-        diagonals, and \(\lambda\) is our unknown. Upon solving for λ, we can find the reaction force vector by finding $$\hat{Q} = J^T\lambda$$
+        diagonals, and \(\lambda\) is our unknown. Upon solving for \(\lambda\), we can find the reaction force vector by finding $$\hat{Q}
+        = J^T\lambda$$
 
         At this point, it was
         unclear how the paper derived the forces exerted by the constraints from the vector \(\hat{Q}\) since it is 
@@ -136,11 +172,11 @@
 
     <h3 align="left">"Exploding" the Shards</h3>
     <p>
-        In order to better see how the object shattered, after shattering it we move each shard outward from the center of the object so
+        In order to better see how the object shattered, after shattering it we move each shard outward from the center of the plane so
         that each shard can be seen individually. After the fracturing algorithm is completed, we run depth first search on our mesh in
         order to group our tetrahedra into shards. We treat our tetrahedron mesh as a disconnected graph, and each run of DFS creates a new
         shard. For each neighbor of a tetrahedron, we add it to be traversed if the constraint between the tetrahedron and its neighbor
-        is not broken. However, it is possible for two neighboring tetrahdrons to be in the same shard even if the constraint between
+        is not broken. However, it is still possible for two neighboring tetrahdrons to be in the same shard even if the constraint between
         them is broken, because they may be connected via other tetrahedrons. In this case the fracture is just a crack and not a true
         break.
     </p>
@@ -163,43 +199,44 @@
 
     <h2 align="left" id="results">Results</h2>
     <p>
-        Wireframe showing constraints between tetrahedra. Broken constraints are shown in red. After the pieces are separated, only
-        broken constraints between tetrahedra in the same piece are shown.
+        The videos switch between the 3 visualization options. The first is a wireframe showing constraints between tetrahedra. Broken
+        constraints are shown in red. After the pieces are separated, only broken constraints between tetrahedra in the same piece are
+        shown. The second visualization is a wireframe showing face tetrahedra. Internal broken tetrahedra are shown in red. The last
+        visualization is the object rendered with Blinn-Phong shading. Internal broken tetrahedra are shown in grey in order to visualize
+        the cracks.
+    </p>
+    <p>
+        The video below to the left shows a bowl rotated 30 degrees about the x-axis falling from a height of 5, and the video to its right
+        shows the same bowl falling from a height of 20. As you can see below, when the bowl falls from a higher height, more cracks
+        and shards appear because the impact force increases with the fall height.
     </p>
     <div align="center">
         <table style="width=100%">
             <tr>
                 <td>
-                    <video src="../images/bowl30_height5_constraints.mp4" type="video/mp4" width="400" controls align="middle"/>
+                    <video src="../images/bowl30_height5.mp4" type="video/mp4" width="400" controls align="middle"/>
+                </td>
+                <td>
+                    <video src="../images/bowl30_height20.mp4" type="video/mp4" width="400" controls align="middle"/>
                 </td>
             </tr>
         </table>
     </div>
-
     <p>
-        Wireframe showing face tetrahedra. Internal broken tetrahedra are shown in red.
+        The video below to the left shows a bowl rotated 145 degrees about the z-axis falling from a height of 5, and the video to its right
+        shows the same bowl falling from a height of 20. Just as in the videos above, the bowl that falls from a higher height gets more
+        cracks and shards. In addition,
     </p>
     <div align="center">
         <table style="width=100%">
             <tr>
                 <td>
-                    <video src="../images/bowl30_height5_tetra.mp4" type="video/mp4" width="400" controls align="middle"/>
-
+                    <video src="../images/bowl145_height5.mp4" type="video/mp4" width="400" controls align="middle"/>
+                    <figcaption>Bowl rotated 145 deg about the z-axis falling from a height of 5.</figcaption>
                 </td>
-            </tr>
-        </table>
-    </div>
-
-    <p>
-        Object rendered with Blinn-Phong shading. Internal broken tetrahedra are shown in grey in order
-        to visualize the cracks.
-    </p>
-    <div align="center">
-        <table style="width=100%">
-            <tr>
                 <td>
-                    <video src="../images/bowl30_height5_shaded.mp4" type="video/mp4" width="400" controls align="middle"/>
-
+                    <video src="../images/bowl145_height20.mp4" type="video/mp4" width="400" controls align="middle"/>
+                    <figcaption>Bowl rotated 145 deg about the z-axis falling from a height of 20.</figcaption>
                 </td>
             </tr>
         </table>
@@ -223,18 +260,19 @@
             <li>
                 OpenGL
             </li>
+        </ul>
+
+        Open Source Code used: <br />
+        <ul>
             <li>
                 <a href="http://wias-berlin.de/software/index.jsp?id=TetGen&lang=1">TetGen</a> for tetrahedron mesh generation<br>
             </li>
             <li>
                 <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a> for linear algebra<br>
             </li>
-        </ul>
-
-        Open Source Code used: <br />
-        <ul>
             <li>
-                <a href="https://solarianprogrammer.com/2012/07/18/perlin-noise-cpp-11/">Perlin Noise in C++11</a>
+                <a href="https://solarianprogrammer.com/2012/07/18/perlin-noise-cpp-11/">Perlin Noise in C++11</a> for directional
+                crack growth
             </li>
         </ul>
 
@@ -255,16 +293,16 @@
         verlet integration code from project 4. I helped work on the heuristic for our constraint strengths and implemented the crack
         growth that occurs at each iteration of our fracture algorithm. I created the ability for the object to be rotated about the
         x, y, and z-axes and added these controls to the GUI. Along with Alex, I worked on getting the object to "explode" after
-        fracturing in order to better see the shards. I altered Alex's implementation of DFS to make it iterative, and I reimplemented
-        the way we generate our tetrahedron mesh so that they can be easily separated.
+        fracturing in order to better see the shards. I altered Alex's implementation of DFS to make it iterative, debugged the code,
+        and I reimplemented the way we generate our tetrahedron mesh so that the tetrahedra can be easily separated.
     </p>
 
     <p>
         <b>Alex:</b> <br>
         I generated the models that were used by for the simulation by using TetGen program and worked on the parsing of the 
         files to create the in-memory data structures we used. Along with Derek, I worked on designing the data structures
-        that were used for the entire project. Finally, I spent a majority of the time working on the implement fracturing algorithm, including
-        calculating impact forces, building the matrices and vectors, running the CGD, and calculating constraint reaction forces.
+        that were used for the entire project. Finally, I spent a majority of the time working on the implement fracturing algorithm,
+        including calculating impact forces, building the matrices and vectors, running the CGD, and calculating constraint reaction forces.
         I also did part of the explosion simulation by running a DFS algorithm to group all of the tetrahedron objects that 
         were still attached via unbroken constraints.
     </p>
