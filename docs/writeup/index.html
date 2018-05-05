@@ -51,9 +51,9 @@
         In this project we built a simulator for the fracturing of brittle objects, based off of the paper,
         <a href="https://www.ri.cmu.edu/pub_files/pub3/smith_jeffrey_2001_1/smith_jeffrey_2001_1.pdf">Fast and Controllable
             Simulation of the Shattering of Brittle Objects</a>.
-        This report explains how to model the object, create useful visualizations, implement the fracturing algorithm, create constraint
-        heuristics, and simulate the broken shards moving away from each other so that the shards are visible. The final result is a
-        simulator capable of producing realistic fractures in an object when dropped from various heights and angles onto a plane.
+        This report explains how to model the object, create useful visualizations, create constraint heuristics, implement the
+        fracturing algorithm,  and simulate the broken shards moving away from each other so that the shards are visible. The final result
+        is a simulator capable of producing realistic fractures in an object when dropped from various heights and angles onto a plane.
     </p>
 
     <h2 align="left" id="tech">Technical Approach</h2>
@@ -69,19 +69,19 @@
     </p>
 
     <h3 align="left">Visualizations</h3>
-        <p>
-            The original goal was to shatter the teapot, which was modeled as having a solid center. This created a challenge of
-            visualizing what constraints were broken since a strong majority of constraints were on the inside of the mesh. The first
-            approach was to use Blinn-Phong shading with 50% opacity for only surface trianges. However, this did not work as expected,
-            as demonstrated by the image below.
-        </p>
-        <div align="middle">
-            <img src="../images/transparent.png" width="400px" />
-            <figcaption>50% opacity Blinn-Phong shading</figcaption>
-        </div>
-        <p>
-            This problem arises because the triangles in the mesh are in random order
-        </p>
+    <p>
+        The original goal was to shatter the teapot, which was modeled as having a solid center. This created a challenge of
+        visualizing what constraints were broken since a strong majority of constraints were on the inside of the mesh. The first
+        approach was to use Blinn-Phong shading with 50% opacity for only surface trianges. However, this did not work as expected,
+        as demonstrated by the image below.
+    </p>
+    <div align="middle">
+        <img src="../images/transparent.png" width="400px" />
+        <figcaption>50% opacity Blinn-Phong shading</figcaption>
+    </div>
+    <p>
+        This problem arises because the triangles in the mesh are in random order
+    </p>
 
     <h3 align="left">Constraints</h3>
     <p>
@@ -113,7 +113,7 @@
         <center>$$s^i_{new} = s^i_{old}(0.5005 - 0.4995 \text{sin}(4\theta + \frac{\pi}{2})$$</center>
         where \(s^i\) is the constraint strength and \(\theta\) is the angle between the broken constraint and the constraint to be
         weakened. The paper specifies only weakening constraints whose angle with the broken constraint is between \(\frac{\pi}{2}\) and
-        \(-\frac{\pi}{2}\), however, we found our results to improve when we weakened all neighboring constraints regardless of the size
+        \(-\frac{\pi}{2}\); however, we found our results to improve when we weakened all neighboring constraints regardless of the size
         of the angle. In the images below you can see the difference between when crack growth is implemented versus when it is not.
     </p>
     <div align="center">
@@ -152,7 +152,7 @@
         we consider it a compressive force. The paper notes that brittle material are 8 times stronger under compressive forces 
         compared to extension forces, which we incorporate into our criteria for breaking a constraint.
     </p>
-    <h3 align="left">Iterative Approach</h3>
+    <h4 align="left">Iterative Approach</h4>
     <img src="../images/impact_magnitude.png" align="right" width="350px" />
     <p>
         Solving the optimization problem is done by using a conjugate gradient descent solver provided in the 
@@ -183,7 +183,7 @@
     <p>
         After each tetrahedron has been grouped into a shard, we compute the center of each shard by averaging the positions of the
         tetrahedrons' point masses. Then, the acceleration applied to "explode" the shard is the vector from the shard center to the
-        center of the brittle object. We then use the same verlet integration function as falling to move the shards away from the center,
+        center of the plane. We then use the same verlet integration function as falling to move the shards away from the center,
         where the external accelerations vector is just the exploding acceleration.
     </p>
     <p>
@@ -225,7 +225,7 @@
     <p>
         The video below to the left shows a bowl rotated 145 degrees about the z-axis falling from a height of 5, and the video to its right
         shows the same bowl falling from a height of 20. Just as in the videos above, the bowl that falls from a higher height gets more
-        cracks and shards. In addition,
+        cracks and shards.
     </p>
     <div align="center">
         <table style="width=100%">
@@ -241,6 +241,14 @@
             </tr>
         </table>
     </div>
+    <p>
+        In the first set of videos the bowl is rotated so that the impact point in the slightly angled bottom of the bowl, whereas the bowl
+        is rotated so that the impact point is the lip of the bowl. As you can see, the results of shattering differ between the two
+        angles. When the bowl is rotated 30 degrees, the majority of cracks start to form near the impact point at the bottom of the bowl,
+        and as they propogate through the bowl, many small shards are formed all the way up the sides of the bowl. When the bowl is rotated
+        145 degrees, the majority of cracks form at the impact point on the lip of the bowl, with some cracks forming in other parts of the
+        bowl, but a majority of the bowl remains a part of the same shard. 
+    </p>
 
 
     <h2 align="left" id="ref">References</h2>
