@@ -70,17 +70,43 @@
 
     <h3 align="left">Visualizations</h3>
     <p>
+        <img src="../images/transparent.png" align="right" width="300px" />
         The original goal was to shatter the teapot, which was modeled as having a solid center. This created a challenge of
         visualizing what constraints were broken since a strong majority of constraints were on the inside of the mesh. The first
         approach was to use Blinn-Phong shading with 50% opacity for only surface trianges. However, this did not work as expected,
-        as demonstrated by the image below.
+        as demonstrated by the image to the right.
     </p>
-    <div align="middle">
-        <img src="../images/transparent.png" width="400px" />
-        <figcaption>50% opacity Blinn-Phong shading</figcaption>
-    </div>
     <p>
-        This problem arises because the triangles in the mesh are in random order
+        This problem arises because the triangles in the mesh are in random order. Sometimes the behind triangle's color will be (improperly) taken first and then mixed with the front one's. The solution would be to sort the triangles every frame but this would be costly and greatly slow down rendering.
+    </p>
+    <p>
+        The solution we used was a wireframe approach. The first scheme is rendering the contraints: draw a line connecting the two point masses, where the point mass' location is the barycentric center of the tetrahedra. The line is white if the contraint is satisfied, and colored a dark red if it is broken. The second scheme is rendering the cracks: draw a wireframe of only the surface triangles in white. Draw in red (or the chosen color on the color wheel) the edges of the triangle of a broken constraint. This allows you to easily visualize cracks in a thick mesh, such as our teapot. The third scheme was using opaque Blinn-Phong with a white wireframe on broken constrain triangles, which allowed surface cracks to be visualized.
+    </p>
+    <p>
+        One challenge with using Blinn-Phong is computing the correct normal direction. Becuase the vertices and triangles are in essentially random order, naively computing the direction by using the given vertex ordering on the triangle will cause some normals to point away from the camera. The solution was to take the camera position into account, and make the normal point the direction that has a positive inner product with the camera position. This is not a perfect solution, but looks very reasonable on sphere-like meshes. 
+    </p>
+    <div align="center">
+        <table style="width=100%">
+            <tr>
+                <td>
+                    <img src="../images/constraint_cracks.png" height="250px" />
+                    <figcaption>Wireframe Constraints</figcaption>
+                </td>
+                <td>
+                    <img src="../images/tetra_cracks.png" height="250px" />
+                    <figcaption>Wireframe Cracks</figcaption>
+                </td>
+                <td>
+                    <img src="../images/shaded_cracks.png" height="250px" />
+                    <figcaption>Opaque Shaded</figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <h3 align="left">User Interface</h3>
+    <p>
+        The user interface, as seen in images below, allowed us to change simulation parameters, and get simulation statistics. There are options to change the fall height of the object, the rotation around any axis, and a constraint strength additive (to make all constraints stronger), and gravity in any direction. Each of the three visualization modes can be selected with the optional color. At the bottom are statistics on the total number of tetrahedra and constraints on the model. There are also numbers on the number of satisfied and broken constraints.
     </p>
 
     <h3 align="left">Constraints</h3>
@@ -101,6 +127,10 @@
         <center>$$s^i = 0.1 (A_t + 0.5 (V_{a} + V_{b}))$$</center>
         where \(s^i\) is the strength of constraint \(i\), \(A_t\) is the area of the shared triangle face, and \(V_a\) and \(V_b\) are
         the volumes of the two tetrahedra.
+    </p>
+    <p>
+        <img src="../images/perlin_noise.png" align="right" width="150px"/>
+        Another heuristic was adding direction weakening via <a href="https://solarianprogrammer.com/2012/07/18/perlin-noise-cpp-11/">Perlin Noise</a>. The coordinates of one of a constraint's tetrahedra is used to generate Perlin noise, and the decimal part is taken. This number (between 0 and 1) is multiplied by the above heuristic to get the final constraint value. This creates directional weakening as visualized to the right. In the image, the same concept is applied, but using the x and y pixel coordinates and multiplying a white RGB channel by the decimal part. We can see that it creates a wood-like structure that would clearly promote directional weakening in our case.
     </p>
 
     <h4 align="left">Crack Growth via Constraint Weakening</h4>
