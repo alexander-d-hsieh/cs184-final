@@ -77,13 +77,23 @@
         as demonstrated by the image to the right.
     </p>
     <p>
-        This problem arises because the triangles in the mesh are in random order. Sometimes the behind triangle's color will be (improperly) taken first and then mixed with the front one's. The solution would be to sort the triangles every frame but this would be costly and greatly slow down rendering.
+        This problem arises because the triangles in the mesh are in random order. Sometimes the behind triangle's color will be
+        (improperly) taken first and then mixed with the front one's. The solution would be to sort the triangles every frame but
+        this would be costly and greatly slow down rendering.
     </p>
     <p>
-        The solution we used was a wireframe approach. The first scheme is rendering the contraints: draw a line connecting the two point masses, where the point mass' location is the barycentric center of the tetrahedra. The line is white if the contraint is satisfied, and colored a dark red if it is broken. The second scheme is rendering the cracks: draw a wireframe of only the surface triangles in white. Draw in red (or the chosen color on the color wheel) the edges of the triangle of a broken constraint. This allows you to easily visualize cracks in a thick mesh, such as our teapot. The third scheme was using opaque Blinn-Phong with a white wireframe on broken constrain triangles, which allowed surface cracks to be visualized.
+        The solution we used was a wireframe approach. The first scheme is rendering the constraints: draw a line connecting the two point
+        masses, where the point mass' location is the barycentric center of the tetrahedra. The line is white if the contraint is
+        satisfied, and colored a dark red if it is broken. The second scheme is rendering the cracks: draw a wireframe of only the
+        surface triangles in white. Drawn in red are the edges of the triangle of a broken constraint. The third scheme was using opaque
+        Blinn-Phong with a gray wireframe on broken constrain triangles, which allowed surface cracks to be visualized.
     </p>
     <p>
-        One challenge with using Blinn-Phong is computing the correct normal direction. Becuase the vertices and triangles are in essentially random order, naively computing the direction by using the given vertex ordering on the triangle will cause some normals to point away from the camera. The solution was to take the camera position into account, and make the normal point the direction that has a positive inner product with the camera position. This is not a perfect solution, but looks very reasonable on sphere-like meshes. 
+        One challenge with using Blinn-Phong is computing the correct normal direction. Because the vertices and triangles are in
+        essentially random order, naively computing the direction by using the given vertex ordering on the triangle will cause some
+        normals to point away from the camera. The solution was to take the camera position into account, and make the normal point
+        the direction that has a positive inner product with the camera position. This is not a perfect solution, but looks very
+        reasonable on sphere-like meshes.
     </p>
     <div align="center">
         <table style="width=100%">
@@ -106,7 +116,11 @@
 
     <h3 align="left">User Interface</h3>
     <p>
-        The user interface, as seen in images below, allowed us to change simulation parameters, and get simulation statistics. There are options to change the fall height of the object, the rotation around any axis, and a constraint strength additive (to make all constraints stronger), and gravity in any direction. Each of the three visualization modes can be selected with the optional color. At the bottom are statistics on the total number of tetrahedra and constraints on the model. There are also numbers on the number of satisfied and broken constraints.
+        The user interface allowed us to change simulation parameters, and get simulation statistics. There are
+        options to change the fall height of the object, the rotation around any axis, and a constraint strength additive (to make all
+        constraints stronger), and gravity in any direction. Each of the three visualization modes can be selected with the optional color.
+        At the bottom are statistics on the total number of tetrahedra and constraints on the model. There are also numbers on the number
+        of satisfied and broken constraints.
     </p>
 
     <h3 align="left">Constraints</h3>
